@@ -16,14 +16,17 @@ Rewards are not traditional points or power-ups but rather emotional milestones.
 
 ## Main Character
 The main character is a clever and empathetic cat, serving as the player's avatar in the game. This cat is distinguished by its ability to sense and respond to the emotional needs of its owner.
+![Main Character](https://i.ibb.co/CH8mN7j/8678.png)
 
 ## Environment
 The game environment will take place in a person's bedroom... common elements of a bedroom will be present such as a wardrobe, bed, piles of clothes, computer desk, pictures, window, etc. The game is set in modern times and therefore will be easily recognizable by players.
+![Menu](https://i.ibb.co/jVfPB22/Environment.png)
 
 ## Menu
 The menu will be simple with only two options.
 - **Start:** Enters the game directly
 - **Quit:** Closes the game
+![Menu](https://i.ibb.co/CBH2bXM/Menu.png)
 
 ## Controls
 The controls will be as follows:
