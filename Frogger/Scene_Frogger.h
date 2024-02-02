@@ -52,34 +52,20 @@ private:
 	void playerMovement();
 	void adjustPlayerPosition();
 	void checkPlayerState();
-	void respawnPlayer();
-	void playerDeath();
-
-
+	
 	void spawnPlayer(sf::Vector2f pos);
-	void spawnLane(const std::string& tag, sf::Vector2f initialPos, sf::Vector2f velocity, int entityCount, const std::string& animationName, sf::Vector2f boundingBoxSize);
-	void resetEntityPosition(std::shared_ptr<Entity> entity);
-	void onPlayerCollision();
-	void onPlayerCollisionFlower();
+
 	bool checkCollision(Entity& entity1, Entity& entity2);
-	void updateFlowerState(std::shared_ptr<Entity>& lillyPad);
+	
 
-
-	void updateScoreText();
-	void updateLivesText();
 	void drawUI();
-	void updateScoreAndOccupiedCount();
-
-
+	
 	void drawBackground();
 	void drawEntities();
 	void drawBoundingBox(std::shared_ptr<Entity>);
 
 
 	void registerActions();
-	void spawnBugIcon();
-	void flowerLane();
-
 
 	void init(const std::string& path);
 	void loadLevel(const std::string& path);

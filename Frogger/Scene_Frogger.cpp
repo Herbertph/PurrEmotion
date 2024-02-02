@@ -35,36 +35,10 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 	pos.x = pos.x / 2.f;
 	pos.y -= 20.f;
 
-
-	// Spawn lanes
-	spawnLane("moveLeft", { 480.f + 60.f, 600.f - 60.f }, { -40.f, 0.f }, 3, "raceCarL", { 30.f, 15.f });
-	spawnLane("moveRight", { 0.f - 60.f, 600.f - 100.f }, { 60.f, 0.f }, 3, "tractor", { 30.f, 15.f });
-	spawnLane("moveLeft", { 480.f + 60.f, 600.f - 140.f }, { -50.f, 0.f }, 3, "car", { 30.f, 15.f });
-	spawnLane("moveRight", { 0.f - 30.f, 600.f - 180.f }, { 60.f, 0.f }, 3, "raceCarR", { 30.f, 15.f });
-	spawnLane("moveLeft", { 480.f + 180.f, 600.f - 220.f }, { -50.f, 0.f }, 2, "truck", { 60.f, 15.f });
-	spawnLane("moveLeft", { 480.f + 50.f, 600.f - 300.f }, { -50.f, 0.f }, 4, "3turtles", { 90.f, 15.f });
-	spawnLane("moveRight", { 0.f - 20.f, 600.f - 340.f }, { 60.f, 0.f }, 2, "tree1", { 93.f, 15.f });
-	spawnLane("moveRight", { 0.f - 150.f, 600.f - 380.f }, { 100.f, 0.f }, 2, "tree2", { 200.f, 15.f });
-	spawnLane("moveLeft", { 480.f + 40.f, 600.f - 420.f }, { -50.f, 0.f }, 3, "2turtles", { 60.f, 15.f });
-	spawnLane("moveRight", { 0.f - 40.f, 600.f - 460.f }, { 100.f, 0.f }, 3, "tree1", { 93.f, 15.f });
-	flowerLane();
-
 	spawnPlayer(pos);
 
 	MusicPlayer::getInstance().play("gameTheme");
 	MusicPlayer::getInstance().setVolume(50);
-
-	//m_hasCrossedLane = false;
-	m_laneCrossed["lane1"] = false;
-	m_laneCrossed["lane2"] = false;
-	m_laneCrossed["lane3"] = false;
-	m_laneCrossed["lane4"] = false;
-	m_laneCrossed["lane5"] = false;
-	m_laneCrossed["lane6"] = false;
-	m_laneCrossed["lane7"] = false;
-	m_laneCrossed["lane8"] = false;
-	m_laneCrossed["lane9"] = false;
-	m_laneCrossed["lane10"] = false;
 
 }
 
@@ -128,107 +102,16 @@ void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
 	m_player->addComponent<CState>("grounded");
 }
 
-void Scene_Frogger::spawnLane(const std::string& tag, sf::Vector2f initialPos, sf::Vector2f velocity, int entityCount, const std::string& animationName, sf::Vector2f boundingBoxSize) {
-	for (int i = 0; i < entityCount; ++i) {
 
-
-		auto entity = m_entityManager.addEntity(tag);
-		auto& tfm = entity->addComponent<CTransform>(initialPos, velocity);
-
-		entity->addComponent<CBoundingBox>(boundingBoxSize);
-		entity->addComponent<CAnimation>(Assets::getInstance().getAnimation(animationName));
-		initialPos.x += velocity.x < 0 ? -140.f : 140.f;
-	}
-}
-
-void Scene_Frogger::flowerLane()
-{
-	sf::Vector2f pos{ 0.f + 38.f, 600.f - 500.f };
-	for (int i{ 0 }; i < 5; ++i) {
-		auto car = m_entityManager.addEntity("lillyPad");
-		auto& tfm = car->addComponent<CTransform>(pos);
-		car->addComponent<CBoundingBox>(sf::Vector2f{ 30.f, 30.f });
-		car->addComponent<CAnimation>(Assets::getInstance().getAnimation("lillyPad"));
-		pos.x += 100.f;
-	}
-}
-
-void Scene_Frogger::spawnBugIcon()
-{
-
-	std::vector<sf::Vector2f> lillyPadPositions = {
-		{ 0.f + 38.f, 600.f - 500.f },
-		{ 0.f + 138.f, 600.f - 500.f },
-		{ 0.f + 238.f, 600.f - 500.f },
-		{ 0.f + 338.f, 600.f - 500.f },
-		{ 0.f + 438.f, 600.f - 500.f }
-	};
-
-	std::uniform_int_distribution<std::size_t> dist(0, lillyPadPositions.size() - 1);
-	std::size_t randomIndex = dist(rng);
-
-	sf::Vector2f randomPos = lillyPadPositions[randomIndex];
-
-	auto car = m_entityManager.addEntity("bugIcon");
-	auto& tfm = car->addComponent<CTransform>(randomPos);
-	car->addComponent<CBoundingBox>(sf::Vector2f{ 30.f, 30.f });
-	car->addComponent<CAnimation>(Assets::getInstance().getAnimation("bugIcon"));
-
-	// Reset the timer
-	bugIconTimer.restart();
-}
-
-#pragma endregion
-
-#pragma region Configuration and Support
 void Scene_Frogger::init(const std::string& path) {
 }
 
-void Scene_Frogger::resetEntityPosition(std::shared_ptr<Entity> entity) {
-	auto& tfm = entity->getComponent<CTransform>();
-	float windowWidth = 480.f;
-
-	if ((entity->getTag() == "moveLeft" && tfm.pos.x < -50.f) ||
-		(entity->getTag() == "tree" && tfm.pos.x > windowWidth + 100.f)) {
-		tfm.pos.x = windowWidth + 50.f;
-	}
-
-	if (entity->getTag() == "moveRight" && tfm.pos.x > windowWidth + 50.f) {
-		tfm.pos.x = -50.f;
-	}
-}
-
-void Scene_Frogger::updateFlowerState(std::shared_ptr<Entity>& lillyPad) {
-	m_player->getComponent<CTransform>().pos = lillyPad->getComponent<CTransform>().pos;
-	lillyPad->addComponent<CState>().state = "hasFrog";
-
-	// Criar uma nova entidade 'player' para representar o sapo no lillyPad
-	auto newPlayer = m_entityManager.addEntity("player");
-	newPlayer->addComponent<CTransform>(lillyPad->getComponent<CTransform>().pos);
-	newPlayer->addComponent<CBoundingBox>(sf::Vector2f(15.f, 15.f));
-	newPlayer->addComponent<CInput>();
-	newPlayer->addComponent<CAnimation>(Assets::getInstance().getAnimation("down"));
-	newPlayer->addComponent<CState>("grounded");
-
-	m_player = newPlayer; // Atualizar referência do jogador para a nova entidade
-}
-
-void Scene_Frogger::updateScoreAndOccupiedCount() {
-	m_lillyPadsOccupied++;
-	Assets::getInstance().scoreUp(20);
-
-	if (m_lillyPadsOccupied == 5) {
-		Assets::getInstance().scoreUp(100); // Bônus por ocupar todos os lillyPads
-	}
-}
-#pragma endregion
 
 #pragma region Update Game State
 
 void Scene_Frogger::update(sf::Time dt) {
 	sUpdate(dt);
 	if (m_player->getComponent<CState>().state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
-		respawnPlayer();
 	}
 }
 
@@ -239,8 +122,6 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 	if (m_isPaused)
 		return;
 
-	updateScoreText();
-	updateLivesText();
 	sAnimation(dt);
 	sMovement(dt);
 	adjustPlayerPosition();
@@ -254,9 +135,7 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 		for (auto& bug : bugIcon) {
 			bug->removeComponent<CAnimation>();
 		}
-
-		// Spawn a new bugIcon in a random position
-		spawnBugIcon();
+		
 	}
 }
 
@@ -271,7 +150,7 @@ void Scene_Frogger::sMovement(sf::Time dt) {
 			tfm.pos += tfm.vel * dt.asSeconds();
 			tfm.angle += tfm.angVel * dt.asSeconds();
 
-			resetEntityPosition(e);
+			
 		}
 	}
 }
@@ -343,7 +222,6 @@ void Scene_Frogger::sCollisions(sf::Time dt) {
 			}
 
 			if ((entityTag == "moveLeft" || entityTag == "moveRight") && playerTransform.pos.y < 541.f && playerTransform.pos.y > 379.f) {
-				onPlayerCollision();
 				return;
 			}
 		}
@@ -351,106 +229,22 @@ void Scene_Frogger::sCollisions(sf::Time dt) {
 	}
 
 	if (!onSafeEntity && playerTransform.pos.y < 301.f && playerTransform.pos.y > 139.f) {
-		playerDeath();
+		
 		return;
 	}
 
 	for (auto& lillyPad : m_entityManager.getEntities("lillyPad")) {
 		if (checkCollision(*m_player, *lillyPad)) {
-			onPlayerCollisionFlower();
+		
 			return;
 		}
 	}
 
 	if (playerTransform.pos.x <= 20.f || playerTransform.pos.x >= 460.f) {
-		playerDeath();
+		
 	}
 }
 
-void Scene_Frogger::onPlayerCollision() {
-	SoundPlayer::getInstance().play("death", m_player->getComponent<CTransform>().pos);
-	m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("die"));
-	Assets::getInstance().lifeDown(1);
-	updateLivesText();
-
-	if (Assets::getInstance().lifeUp() == 0) {
-		m_player->addComponent<CState>().state = "dead";
-		MusicPlayer::getInstance().stop();
-		onEnd();
-	}
-	else {
-		m_player->addComponent<CState>().state = "dead";
-	}
-	if (m_player->getComponent<CTransform>().pos.y < 600.f - 260.f && m_player->getComponent<CTransform>().pos.y > 300.f) {
-		bool onSafeEntity = false;
-
-		for (auto& safeEntity : m_entityManager.getEntities()) {
-			if (safeEntity->getTag() == "Tree1" || safeEntity->getTag() == "2Turtles" || safeEntity->getTag() == "3Turtles" || safeEntity->getTag() == "Tree2") {
-				if (checkCollision(*m_player, *safeEntity)) {
-					onSafeEntity = true;
-					break;
-				}
-			}
-		}
-
-		if (!onSafeEntity) {
-			playerDeath();
-		}
-	}
-
-}
-
-void Scene_Frogger::onPlayerCollisionFlower() {
-	for (auto& lillyPad : m_entityManager.getEntities("lillyPad")) {
-		if (!checkCollision(*m_player, *lillyPad)) continue;
-
-		// Colisão com lillyPad que já tem sapo
-		if (lillyPad->getComponent<CState>().state == "hasFrog") {
-			Assets::getInstance().scoreDown(20);
-			onPlayerCollision();
-		}
-		else {
-			// Atualiza o estado do lillyPad e a pontuação
-			updateFlowerState(lillyPad);
-			updateScoreAndOccupiedCount();
-		}
-
-		respawnPlayer();
-		break; // Sair do loop após tratar a colisão
-	}
-}
-
-void Scene_Frogger::playerDeath() {
-
-	SoundPlayer::getInstance().play("death", m_player->getComponent<CTransform>().pos);
-	m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("die"));
-	Assets::getInstance().lifeDown(1);
-	updateLivesText();
-
-	if (Assets::getInstance().lifeUp() == 0) {
-		m_player->addComponent<CState>().state = "dead";
-		MusicPlayer::getInstance().stop();
-		onEnd();
-	}
-	else {
-
-		m_player->addComponent<CState>().state = "dead";
-	}
-}
-
-void Scene_Frogger::respawnPlayer() {
-	auto pos = m_worldView.getSize();
-	pos.x = pos.x / 2.f;
-	pos.y -= 20.f;
-	m_player->getComponent<CTransform>().pos = pos;
-
-	// set the player to initial state 
-	auto& playerState = m_player->getComponent<CState>().state;
-	playerState = "grounded";
-
-	// set the player to initial animation
-	m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
-}
 
 bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 	if (entity1.hasComponent<CBoundingBox>() && entity2.hasComponent<CBoundingBox>()) {
@@ -476,7 +270,7 @@ bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 void Scene_Frogger::checkPlayerState() {
 	auto& state = m_player->getComponent<CState>().state;
 	if (state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
-		respawnPlayer();
+		
 	}
 }
 
@@ -569,30 +363,7 @@ void Scene_Frogger::sDoAction(const Command& action) {
 	}
 }
 
-#pragma endregion
 
-#pragma region UIUpdate and Others
-
-void Scene_Frogger::updateScoreText() {
-	m_font = Assets::getInstance().getFont("Arcade");
-	m_scoreText.setString("Score  " + std::to_string(Assets::getInstance().getScore()));
-
-	// Setting the score text properties
-	m_scoreText.setPosition(20.f, 15.f);
-	m_scoreText.setFont(m_font);
-	m_scoreText.setCharacterSize(30);
-	m_scoreText.setFillColor(sf::Color::Green);
-}
-
-void Scene_Frogger::updateLivesText() {
-	m_font = Assets::getInstance().getFont("Arcade");
-	m_livesText.setString("Lives  " + std::to_string(Assets::getInstance().lifeUp()));
-	// Setting the lives text properties
-	m_livesText.setPosition(320.f, 15.f);
-	m_livesText.setFont(m_font);
-	m_livesText.setCharacterSize(30);
-	m_livesText.setFillColor(sf::Color::Red);
-}
 
 void Scene_Frogger::sAnimation(sf::Time dt) {
 	auto list = m_entityManager.getEntities();
