@@ -20,6 +20,8 @@ namespace {
 }
 
 
+const float GRAVITY_SPEED = 100.f;
+
 
 #pragma region Constructor and Initialization
 Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPath)
@@ -124,18 +126,51 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 
 	sAnimation(dt);
 	sMovement(dt);
+	applyGravity(dt);
 	adjustPlayerPosition();
-	checkPlayerState();
 	sCollisions(dt);
 
-	// Check if the bugIcon duration has passed
-	if (bugIconTimer.getElapsedTime() >= bugIconDuration) {
-		auto bugIcon = m_entityManager.getEntities("bugIcon");
-		// Remove the CAnimation component from bugIcon
-		for (auto& bug : bugIcon) {
-			bug->removeComponent<CAnimation>();
-		}
-		
+}
+
+void Scene_Frogger::applyGravity(sf::Time dt) {
+	auto& playerTransform = m_player->getComponent<CTransform>();
+
+	// Verifica se o personagem não está no chão.
+	if (!isOnGround()) {
+		// Aplica a gravidade modificando a posição y do personagem
+		playerTransform.pos.y += GRAVITY_SPEED * dt.asSeconds();
+	}
+
+	// Garante que o personagem não saia do chão
+	checkGroundCollision();
+
+}
+
+bool Scene_Frogger::isOnGround() const {
+	if (!m_player) return false; // Segurança adicional para garantir que m_player não é nulo.
+
+	auto& transform = m_player->getComponent<CTransform>();
+	auto& boundingBox = m_player->getComponent<CBoundingBox>();
+
+	// Considerando que o chão esteja na altura Y = 500 pixels da janela.
+	// Ajuste este valor para corresponder à altura real do chão no seu jogo.
+	float groundHeight = 500;
+
+	// Verifica se a base do personagem (sua posição y + metade da altura do bounding box) está no ou acima do chão.
+	return (transform.pos.y + boundingBox.halfSize.y) >= groundHeight;
+}
+
+void Scene_Frogger::checkGroundCollision() {
+	if (!m_player) return; // Segurança adicional.
+
+	auto& transform = m_player->getComponent<CTransform>();
+	auto& boundingBox = m_player->getComponent<CBoundingBox>();
+
+	float groundHeight = 500; // Ajuste conforme necessário.
+
+	// Se a base do personagem está abaixo do chão, ajuste sua posição para tocar o chão.
+	if ((transform.pos.y + boundingBox.halfSize.y) > groundHeight) {
+		transform.pos.y = groundHeight - boundingBox.halfSize.y;
 	}
 }
 
@@ -156,10 +191,6 @@ void Scene_Frogger::sMovement(sf::Time dt) {
 }
 
 void Scene_Frogger::playerMovement() {
-	// no movement if player is dead
-	if (m_player->hasComponent<CState>() && m_player->getComponent<CState>().state == "dead")
-		return;
-
 	auto& dir = m_player->getComponent<CInput>().dir;
 	auto& pos = m_player->getComponent<CTransform>().pos;
 
@@ -167,11 +198,6 @@ void Scene_Frogger::playerMovement() {
 		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
 		pos.y -= 40.f;
 	}
-	if (dir & CInput::DOWN) {
-		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("down"));
-		pos.y += 40.f;
-	}
-
 	if (dir & CInput::LEFT) {
 		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("left"));
 		pos.x -= 40.f;
@@ -267,12 +293,7 @@ bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 	return false;
 }
 
-void Scene_Frogger::checkPlayerState() {
-	auto& state = m_player->getComponent<CState>().state;
-	if (state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
-		
-	}
-}
+
 
 #pragma endregion
 
@@ -382,10 +403,10 @@ void Scene_Frogger::adjustPlayerPosition() {
 	sf::Vector2f viewHalfSize = m_worldView.getSize() / 2.f;
 
 
-	auto left = center.x - viewHalfSize.x;
-	auto right = center.x + viewHalfSize.x;
+	auto left = 25;
+	auto right = 975;
 	auto top = center.y - viewHalfSize.y;
-	auto bot = center.y + viewHalfSize.y;
+	auto bot = 500;
 
 	auto& player_pos = m_player->getComponent<CTransform>().pos;
 	auto halfSize = sf::Vector2f{ 20, 20 };

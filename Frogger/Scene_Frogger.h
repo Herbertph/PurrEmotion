@@ -46,12 +46,13 @@ private:
 	void sCollisions(sf::Time dt);
 	void sUpdate(sf::Time dt);
 	void sAnimation(sf::Time dt);
+	void applyGravity(sf::Time dt);
 	void onEnd();
 
 
 	void playerMovement();
 	void adjustPlayerPosition();
-	void checkPlayerState();
+	
 	
 	void spawnPlayer(sf::Vector2f pos);
 
@@ -63,7 +64,8 @@ private:
 	void drawBackground();
 	void drawEntities();
 	void drawBoundingBox(std::shared_ptr<Entity>);
-
+	bool isOnGround() const;
+	void checkGroundCollision();
 
 	void registerActions();
 

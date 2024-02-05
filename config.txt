@@ -28,20 +28,9 @@ JSON                    ../assets/Textures/froggerAtlas.json
 
 #
 #  Animation    Name            Texture     Speed   Repeats
-Animation       up              Entities    8        no
-Animation       down            Entities    8        no
+Animation       up              Entities    8        yes
 Animation       left            Entities    8        no
 Animation       right           Entities    8        no
-Animation       die             Entities    8        no
 
-Animation       turtles2        Entities    1        no
-Animation       turtles         Entities    1        no
-
-Animation       2turtles        Entities    1        yes
-Animation       3turtles        Entities    1        yes
-Animation       bugIcon         Entities    1        no
-Animation       car             Entities    1        no
-Animation       croc            Entities    1        yes
-Animation       crocIcon        Entities    1        no
 
 

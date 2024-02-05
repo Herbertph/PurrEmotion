@@ -1,275 +1,85 @@
 {
-  "frames": {
-    "Sit-0": {
-      "frame": {
-        "x": 264,
-        "y": 38,
-        "w": 15,
-        "h": 20
-      },
+  "frames": [
+    {
+      "filename": "Sit.png",
+      "frame": {"x": 264, "y": 38, "w": 15, "h": 20},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 264,
-        "y": 38,
-        "w": 15,
-        "h": 20
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 264, "y": 38, "w": 15, "h": 20},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninLeft-0": {
-      "frame": {
-        "x": 642,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "RunninLeft-0.png",
+      "frame": {"x": 642, "y": 130, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 642,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 642, "y": 130, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninLeft-1": {
-      "frame": {
-        "x": 674,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "RunninLeft-1.png",
+      "frame": {"x": 674, "y": 130, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 674,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 674, "y": 130, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninLeft-2": {
-      "frame": {
-        "x": 706,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "RunninRight-2.png",
+      "frame": {"x": 574, "y": 482, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 706,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 574, "y": 482, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninLeft-3": {
-      "frame": {
-        "x": 738,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "RunninRight-3.png",
+      "frame": {"x": 606, "y": 482, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 738,
-        "y": 130,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 606, "y": 482, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninRight-0": {
-      "frame": {
-        "x": 510,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "JumpRight-0.png",
+      "frame": {"x": 639, "y": 515, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 510,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 639, "y": 515, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninRight-1": {
-      "frame": {
-        "x": 542,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "JumpRight-1.png",
+      "frame": {"x": 671, "y": 515, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 542,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 671, "y": 515, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninRight-2": {
-      "frame": {
-        "x": 574,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "JumpRight-2.png",
+      "frame": {"x": 703, "y": 515, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 574,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 703, "y": 515, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     },
-    "RunninRight-3": {
-      "frame": {
-        "x": 606,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
+    {
+      "filename": "JumpRight-3.png",
+      "frame": {"x": 735, "y": 515, "w": 32, "h": 25},
       "rotated": false,
       "trimmed": false,
-      "spriteSourceSize": {
-        "x": 606,
-        "y": 482,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
-    },
-    "JumpRight-0": {
-      "frame": {
-        "x": 639,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 639,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
-    },
-    "JumpRight-1": {
-      "frame": {
-        "x": 671,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 671,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
-    },
-    "JumpRight-2": {
-      "frame": {
-        "x": 703,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 703,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
-    },
-    "JumpRight-3": {
-      "frame": {
-        "x": 735,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 735,
-        "y": 515,
-        "w": 32,
-        "h": 25
-      },
-      "sourceSize": {
-        "w": 1024,
-        "h": 544
-      }
+      "spriteSourceSize": {"x": 735, "y": 515, "w": 32, "h": 25},
+      "sourceSize": {"w": 1024, "h": 544}
     }
-  },
+  ],
   "meta": {
-    "app": "sprite-sheet-to-json",
-    "version": "1.0.0",
-    "image": "grey_0.png",
+    "app": "https://www.codeandweb.com/texturepacker",
+    "version": "1.0",
+    "image": "catAtlas.png",
     "format": "RGBA8888",
-    "size": {
-      "w": 1024,
-      "h": 544
-    },
-    "scale": "1"
+    "size": {"w": 269, "h": 269},
+    "scale": "1",
+    "smartupdate": "$TexturePacker:SmartUpdate:904f4adc1fdcd9cc85b202fde7411999:15b71623bc6f98bc3ccb2c9b504b952e:ece2dd005824f07bc50b57ffe85f2ef5$"
   }
 }

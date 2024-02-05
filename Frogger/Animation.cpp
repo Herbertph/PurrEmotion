@@ -19,6 +19,7 @@ Animation::Animation(const std::string& name,
 	, m_sprite(t, m_frames[0])
 {
 	centerOrigin(m_sprite);
+	m_sprite.setScale(2.5f, 2.5f);
 
 	std::cout << name << " tpf: " << m_timePerFrame.asMilliseconds() << "ms\n";
 }
@@ -37,6 +38,7 @@ void Animation::update(sf::Time dt) {
 			m_currentFrame = (m_currentFrame % m_frames.size());
 
 		m_sprite.setTextureRect(m_frames[m_currentFrame]);
+		m_sprite.setScale(2.5f, 2.5f);
 		centerOrigin(m_sprite);
 	}
 }
