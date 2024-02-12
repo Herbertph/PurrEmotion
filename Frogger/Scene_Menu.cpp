@@ -17,6 +17,8 @@ Scene_Menu::Scene_Menu(GameEngine* gameEngine)
 
 void Scene_Menu::init()
 {
+	
+
 	registerAction(sf::Keyboard::W, "UP");
 	registerAction(sf::Keyboard::Up, "UP");
 	registerAction(sf::Keyboard::S, "DOWN");
@@ -25,8 +27,7 @@ void Scene_Menu::init()
 	registerAction(sf::Keyboard::Escape, "QUIT");
 
 
-
-	m_title = "Frogger";
+	m_title = "PurrEmotion";
 	m_menuStrings.push_back("Start");
 	//m_menuStrings.push_back("Level 2");
 	//m_menuStrings.push_back("Level 3");
@@ -50,7 +51,8 @@ void Scene_Menu::update(sf::Time dt)
 
 void Scene_Menu::sRender()
 {
-
+	
+	m_game->window().draw(m_background);
 	sf::View view = m_game->window().getView();
 	view.setCenter(m_game->window().getSize().x / 2.f, m_game->window().getSize().y / 2.f);
 	m_game->window().setView(view);

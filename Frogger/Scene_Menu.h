@@ -10,7 +10,7 @@ private:
 	std::vector<std::string>	m_levelPaths;
 	int							m_menuIndex{0};
 	std::string					m_title;
-
+	sf::Sprite					m_background;
 
 	void init();
 	void onEnd() override;

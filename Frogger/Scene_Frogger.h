@@ -21,15 +21,7 @@ private:
 	sf::View m_worldView;
 	sf::FloatRect m_worldBounds;
 
-
-	sf::Text m_scoreText;
-	sf::Text m_livesText;
 	sf::Font m_font;
-
-
-	sf::Clock gapTimer;
-	sf::Clock bugIconTimer;
-	sf::Time bugIconDuration = sf::seconds(5.0f);
 
 
 	bool m_drawTextures{ true };
@@ -38,7 +30,6 @@ private:
 
 
 	int m_score{ 0 };
-	int m_lillyPadsOccupied = 0;
 	std::unordered_map<std::string, bool> m_laneCrossed;
 
 
@@ -59,7 +50,7 @@ private:
 	bool checkCollision(Entity& entity1, Entity& entity2);
 	
 
-	void drawUI();
+
 	
 	void drawBackground();
 	void drawEntities();

@@ -94,7 +94,7 @@ void Scene_Frogger::registerActions() {
 }
 
 void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
-	m_lillyPadsOccupied = 0;
+	
 
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CTransform>(pos);
@@ -134,41 +134,34 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 
 void Scene_Frogger::applyGravity(sf::Time dt) {
 	auto& playerTransform = m_player->getComponent<CTransform>();
-
-	// Verifica se o personagem não está no chão.
 	if (!isOnGround()) {
-		// Aplica a gravidade modificando a posição y do personagem
+		
 		playerTransform.pos.y += GRAVITY_SPEED * dt.asSeconds();
 	}
-
-	// Garante que o personagem não saia do chão
 	checkGroundCollision();
 
 }
 
 bool Scene_Frogger::isOnGround() const {
-	if (!m_player) return false; // Segurança adicional para garantir que m_player não é nulo.
+	if (!m_player) return false; 
 
 	auto& transform = m_player->getComponent<CTransform>();
 	auto& boundingBox = m_player->getComponent<CBoundingBox>();
 
-	// Considerando que o chão esteja na altura Y = 500 pixels da janela.
-	// Ajuste este valor para corresponder à altura real do chão no seu jogo.
+	//Bounding box location
 	float groundHeight = 500;
 
-	// Verifica se a base do personagem (sua posição y + metade da altura do bounding box) está no ou acima do chão.
 	return (transform.pos.y + boundingBox.halfSize.y) >= groundHeight;
 }
 
 void Scene_Frogger::checkGroundCollision() {
-	if (!m_player) return; // Segurança adicional.
+	if (!m_player) return; 
 
 	auto& transform = m_player->getComponent<CTransform>();
 	auto& boundingBox = m_player->getComponent<CBoundingBox>();
 
-	float groundHeight = 500; // Ajuste conforme necessário.
+	float groundHeight = 500; 
 
-	// Se a base do personagem está abaixo do chão, ajuste sua posição para tocar o chão.
 	if ((transform.pos.y + boundingBox.halfSize.y) > groundHeight) {
 		transform.pos.y = groundHeight - boundingBox.halfSize.y;
 	}
@@ -185,7 +178,6 @@ void Scene_Frogger::sMovement(sf::Time dt) {
 			tfm.pos += tfm.vel * dt.asSeconds();
 			tfm.angle += tfm.angVel * dt.asSeconds();
 
-			
 		}
 	}
 }
@@ -194,24 +186,26 @@ void Scene_Frogger::playerMovement() {
 	auto& dir = m_player->getComponent<CInput>().dir;
 	auto& pos = m_player->getComponent<CTransform>().pos;
 
+	
 	if (dir & CInput::UP) {
 		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
-		pos.y -= 40.f;
+		pos.y -= 15.f;
 	}
+
 	if (dir & CInput::LEFT) {
 		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("left"));
-		pos.x -= 40.f;
+		pos.x -= 5.f;
 	}
 
 	if (dir & CInput::RIGHT) {
 		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("right"));
-		pos.x += 40.f;
+		pos.x += 5.f;
+	}
+	if (dir == 0) {
+		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
 	}
 
-	if (dir != 0) {
-		SoundPlayer::getInstance().play("hop", m_player->getComponent<CTransform>().pos);
-		dir = 0;
-	}
+	
 }
 
 void Scene_Frogger::sCollisions(sf::Time dt) {
@@ -224,51 +218,6 @@ void Scene_Frogger::sCollisions(sf::Time dt) {
 	bool onSafeEntity = false;
 	auto& playerTransform = m_player->getComponent<CTransform>();
 
-
-
-	for (auto& bug : m_entityManager.getEntities("bugIcon")) {
-		if (checkCollision(*m_player, *bug)) {
-			Assets::getInstance().scoreUp(100);
-
-			bug->removeComponent<CAnimation>();
-			bugIconTimer.restart();
-		}
-	}
-
-	for (auto& entity : m_entityManager.getEntities()) {
-		if (checkCollision(*m_player, *entity)) {
-			const auto& entityTag = entity->getTag();
-			const auto& entityTransform = entity->getComponent<CTransform>();
-
-
-			if ((entityTag == "moveLeft" || entityTag == "moveRight" || entityTag == "tree") &&
-				playerTransform.pos.y < 301.f && playerTransform.pos.y > 139.f) {
-				onSafeEntity = true;
-				playerTransform.pos.x += entityTransform.vel.x * dt.asSeconds();
-			}
-
-			if ((entityTag == "moveLeft" || entityTag == "moveRight") && playerTransform.pos.y < 541.f && playerTransform.pos.y > 379.f) {
-				return;
-			}
-		}
-
-	}
-
-	if (!onSafeEntity && playerTransform.pos.y < 301.f && playerTransform.pos.y > 139.f) {
-		
-		return;
-	}
-
-	for (auto& lillyPad : m_entityManager.getEntities("lillyPad")) {
-		if (checkCollision(*m_player, *lillyPad)) {
-		
-			return;
-		}
-	}
-
-	if (playerTransform.pos.x <= 20.f || playerTransform.pos.x >= 460.f) {
-		
-	}
 }
 
 
@@ -295,10 +244,6 @@ bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 
 
 
-#pragma endregion
-
-#pragma region Renderings
-
 sf::FloatRect Scene_Frogger::getViewBounds() {
 	return sf::FloatRect();
 }
@@ -307,7 +252,7 @@ void Scene_Frogger::sRender() {
 	m_game->window().setView(m_worldView);
 	drawBackground();
 	drawEntities();
-	drawUI();
+	
 }
 
 void Scene_Frogger::drawBackground() {
@@ -345,12 +290,6 @@ void Scene_Frogger::drawBoundingBox(std::shared_ptr<Entity> entity) {
 	m_game->window().draw(rect);
 }
 
-void Scene_Frogger::drawUI() {
-	m_game->window().draw(m_scoreText);
-	m_game->window().draw(m_livesText);
-}
-
-#pragma endregion
 
 #pragma region Endgame and Actions
 

@@ -11,8 +11,8 @@ Music missionTheme      ../assets/Music/music.ogg
 
 # Textures
 Texture Background      ../assets/Textures/background.png
-Texture Title           ../assets/Textures/FroggerTitle.png
-Texture Entities        ../assets/Textures/froggerAtlas.png
+Texture Title           ../assets/Textures/menu.png
+Texture Entities        ../assets/Textures/catAtlas.png
 
 # Sprites
 Sprite Background       Background   0 0  480 600
@@ -23,7 +23,7 @@ Sprite Title            Title 0 0 480 600
 Sound death             ../assets/Sound/froggerDie.wav
 Sound hop               ../assets/Sound/froggerMove.wav
 
-JSON                    ../assets/Textures/froggerAtlas.json
+JSON                    ../assets/Textures/catAtlas.json
 
 
 #
