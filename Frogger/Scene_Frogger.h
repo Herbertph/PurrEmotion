@@ -18,6 +18,8 @@ private:
 
 
 	sPtrEntt m_player{ nullptr };
+	sPtrEntt m_invisibleCollisionBox{ nullptr };
+	sPtrEntt m_interactiveBox{ nullptr };
 	sf::View m_worldView;
 	sf::FloatRect m_worldBounds;
 
@@ -43,6 +45,11 @@ private:
 
 	void playerMovement();
 	void adjustPlayerPosition();
+	void spawnInvisibleCollisionBox();
+	void checkPlayerGroundStatus();
+	float getGroundLevelAt(float x);
+	bool isOnInvisibleBox() const;
+	void spawnInteractiveBoxes();
 	
 	
 	void spawnPlayer(sf::Vector2f pos);

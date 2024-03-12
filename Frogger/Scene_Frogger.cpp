@@ -37,7 +37,10 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 	pos.x = pos.x / 2.f;
 	pos.y -= 20.f;
 
+	spawnInvisibleCollisionBox();
+	spawnInteractiveBoxes();
 	spawnPlayer(pos);
+
 
 	MusicPlayer::getInstance().play("gameTheme");
 	MusicPlayer::getInstance().setVolume(50);
@@ -61,9 +64,7 @@ void Scene_Frogger::loadLevel(const std::string& path) {
 			config >> name >> pos.x >> pos.y;
 			auto e = m_entityManager.addEntity("bkg");
 
-			// for background, no textureRect its just the whole texture
-			// and no center origin, position by top left corner
-			// stationary so no CTransfrom required.
+		
 			auto& sprite = e->addComponent<CSprite>(Assets::getInstance().getTexture(name)).sprite;
 			sprite.setOrigin(0.f, 0.f);
 			sprite.setPosition(pos);
@@ -98,7 +99,7 @@ void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
 
 	m_player = m_entityManager.addEntity("player");
 	m_player->addComponent<CTransform>(pos);
-	m_player->addComponent<CBoundingBox>(sf::Vector2f(15.f, 15.f));
+	m_player->addComponent<CBoundingBox>(sf::Vector2f(20.f, 20.f));
 	m_player->addComponent<CInput>();
 	m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
 	m_player->addComponent<CState>("grounded");
@@ -129,17 +130,25 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 	applyGravity(dt);
 	adjustPlayerPosition();
 	sCollisions(dt);
+	
 
 }
 
 void Scene_Frogger::applyGravity(sf::Time dt) {
-	auto& playerTransform = m_player->getComponent<CTransform>();
-	if (!isOnGround()) {
+	auto& state = m_player->getComponent<CState>().state;
+	if (state == "jumping") {
 		
-		playerTransform.pos.y += GRAVITY_SPEED * dt.asSeconds();
-	}
-	checkGroundCollision();
+		auto& pos = m_player->getComponent<CTransform>().pos;
+		auto& vel = m_player->getComponent<CTransform>().vel;
+		vel.y += GRAVITY_SPEED * 0.1; 
+		pos.y += vel.y * 0.1; 
 
+		
+		if (isOnGround()) {
+			state = "grounded"; 
+			vel.y = 0; 
+		}
+	}
 }
 
 bool Scene_Frogger::isOnGround() const {
@@ -150,6 +159,11 @@ bool Scene_Frogger::isOnGround() const {
 
 	//Bounding box location
 	float groundHeight = 500;
+
+	if ((transform.pos.y + boundingBox.halfSize.y) > groundHeight) {
+		return true;
+	}
+
 
 	return (transform.pos.y + boundingBox.halfSize.y) >= groundHeight;
 }
@@ -185,39 +199,63 @@ void Scene_Frogger::sMovement(sf::Time dt) {
 void Scene_Frogger::playerMovement() {
 	auto& dir = m_player->getComponent<CInput>().dir;
 	auto& pos = m_player->getComponent<CTransform>().pos;
+	auto& vel = m_player->getComponent<CTransform>().vel; 
+	auto& state = m_player->getComponent<CState>().state;
 
 	
-	if (dir & CInput::UP) {
-		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
-		pos.y -= 15.f;
-	}
-
 	if (dir & CInput::LEFT) {
-		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("left"));
-		pos.x -= 5.f;
+		
+		pos.x -= 3; 
+		if (state == "grounded" || state == "jumping") { 
+			m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("left"));
+		}
+	}
+	if (dir & CInput::RIGHT) {
+		
+		pos.x += 3; 
+		if (state == "grounded" || state == "jumping") { 
+			m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("right"));
+		}
 	}
 
-	if (dir & CInput::RIGHT) {
-		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("right"));
-		pos.x += 5.f;
+	if ((dir & CInput::UP) && state == "grounded") {
+		state = "jumping";
+		vel.y = -200; 
 	}
-	if (dir == 0) {
+
+	if (dir == 0 && state == "grounded") {
 		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
 	}
-
-	
 }
 
 void Scene_Frogger::sCollisions(sf::Time dt) {
-	adjustPlayerPosition();
+	auto& entities = m_entityManager.getEntities();
+	for (auto& entity : entities) {
+		if (entity->getTag() == "player") {
+			auto& playerTransform = entity->getComponent<CTransform>();
+			auto& playerBox = entity->getComponent<CBoundingBox>();
 
-	if (m_player->getComponent<CState>().state == "dead") {
-		return;
+			for (auto& other : entities) {
+				if (entity == other || !other->hasComponent<CBoundingBox>()) continue;
+
+				if (other->getTag() == "invisibleCollisionBox" && checkCollision(*entity, *other)) {
+					// Tratar as caixas invisíveis como chão
+					entity->getComponent<CState>().state = "grounded";
+					break; // Pode parar de verificar outras colisões se já encontrou chão
+				}
+				// if not touching anything, apply gravity
+				else {
+					entity->getComponent<CState>().state = "jumping";
+				}
+
+			}
+		}
 	}
+}
 
-	bool onSafeEntity = false;
-	auto& playerTransform = m_player->getComponent<CTransform>();
 
+float Scene_Frogger::getGroundLevelAt(float x) {
+	return 500.0f; 
 }
 
 
@@ -252,6 +290,13 @@ void Scene_Frogger::sRender() {
 	m_game->window().setView(m_worldView);
 	drawBackground();
 	drawEntities();
+	if (m_drawAABB) {
+		for (auto& e : m_entityManager.getEntities()) {
+			if (e->hasComponent<CBoundingBox>()) {
+				drawBoundingBox(e);
+			}
+		}
+	}
 	
 }
 
@@ -291,7 +336,6 @@ void Scene_Frogger::drawBoundingBox(std::shared_ptr<Entity> entity) {
 }
 
 
-#pragma region Endgame and Actions
 
 void Scene_Frogger::onEnd() {
 	m_game->changeScene("MENU", nullptr, false);
@@ -332,7 +376,6 @@ void Scene_Frogger::sAnimation(sf::Time dt) {
 		if (e->hasComponent<CAnimation>()) {
 			auto& anim = e->getComponent<CAnimation>();
 			anim.animation.update(dt);
-			// do nothing if animation has ended
 		}
 	}
 }
@@ -356,9 +399,47 @@ void Scene_Frogger::adjustPlayerPosition() {
 	player_pos.y = std::min(player_pos.y, bot - halfSize.y);
 }
 
-#pragma endregion
+void Scene_Frogger::spawnInvisibleCollisionBox() {
+
+	sf::Vector2f viewSize = m_worldView.getSize();
 
 
+	//left
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+	//right
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(115.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+	//bed
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(505.f, 350.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(220.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+	//drawn a line in the middle of initial position of the player
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(480.f, 480.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(1000.f, 20.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+}
 
 
+void Scene_Frogger::spawnInteractiveBoxes() {
+	//Preciso de 4 boxes espalhadas horizontamelnente pelo cenario. Assim como o player, elas precisam de uma bounding box
+	//ela nao vao ter sprite mas elas devem estar desativadas. A numeor 1 deve ser ativada com 30s de jogo, a 2 com 60s, a 3 com 90s e a 4 com 120s
+	sf::Vector2f viewSize = m_worldView.getSize();
+	//first one on the left
+	m_interactiveBox = m_entityManager.addEntity("interactiveBox");
+	m_interactiveBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
+	m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
+	
+	
 
+}
