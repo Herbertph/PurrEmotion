@@ -38,7 +38,7 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 	pos.y -= 20.f;
 
 	spawnInvisibleCollisionBox();
-	spawnInteractiveBoxes();
+	//spawnInteractiveBoxes();
 	spawnPlayer(pos);
 
 
@@ -92,6 +92,7 @@ void Scene_Frogger::registerActions() {
 	registerAction(sf::Keyboard::Up, "UP");
 	registerAction(sf::Keyboard::S, "DOWN");
 	registerAction(sf::Keyboard::Down, "DOWN");
+	registerAction(sf::Keyboard::Space, "ACTIVATE");
 }
 
 void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
@@ -113,6 +114,26 @@ void Scene_Frogger::init(const std::string& path) {
 #pragma region Update Game State
 
 void Scene_Frogger::update(sf::Time dt) {
+	m_elapsedTime += dt;
+
+	// Cria a primeira caixa interativa após 10 segundos
+	if (!m_boxCreated[0] && m_elapsedTime >= sf::seconds(10)) {
+		spawnInteractiveBoxes(1); // Índice 1 para a primeira caixa
+		m_boxCreated[0] = true;
+	}
+
+	// Cria a segunda caixa interativa após 20 segundos
+	if (!m_boxCreated[1] && m_elapsedTime >= sf::seconds(20)) {
+		spawnInteractiveBoxes(2); // Índice 2 para a segunda caixa
+		m_boxCreated[1] = true;
+	}
+
+	// Cria a terceira caixa interativa após 30 segundos
+	if (!m_boxCreated[2] && m_elapsedTime >= sf::seconds(30)) {
+		spawnInteractiveBoxes(3); // Índice 3 para a terceira caixa
+		m_boxCreated[2] = true;
+	}
+
 	sUpdate(dt);
 	if (m_player->getComponent<CState>().state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
 	}
@@ -130,6 +151,9 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 	applyGravity(dt);
 	adjustPlayerPosition();
 	sCollisions(dt);
+	
+	m_elapsedTime += dt;
+
 	
 
 }
@@ -274,9 +298,13 @@ bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 			entity2.getComponent<CTransform>().pos.y - box2.size.y / 2.f,
 			box2.size.x, box2.size.y);
 
-		return rect1.intersects(rect2);
+		// Verifica se as bounding boxes se intersectam
+		bool collision = rect1.intersects(rect2);
+
+		return collision;
 	}
 
+	// Retorna falso se uma das entidades não tiver o componente CBoundingBox
 	return false;
 }
 
@@ -357,6 +385,7 @@ void Scene_Frogger::sDoAction(const Command& action) {
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().dir = CInput::RIGHT; }
 		else if (action.name() == "UP") { m_player->getComponent<CInput>().dir = CInput::UP; }
 		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().dir = CInput::DOWN; }
+	
 	}
 	// on Key Release
 	// the frog can only go in one direction at a time, no angles
@@ -364,6 +393,20 @@ void Scene_Frogger::sDoAction(const Command& action) {
 	else if (action.type() == "END" && (action.name() == "LEFT" || action.name() == "RIGHT" || action.name() == "UP" ||
 		action.name() == "DOWN")) {
 		m_player->getComponent<CInput>().dir = 0;
+	}
+	if (action.type() == "START" && action.name() == "ACTIVATE") {
+		for (auto& entity : m_entityManager.getEntities()) {
+			// Certifique-se de que a entidade é uma caixa interativa
+			if (entity->getTag() == "interactiveBox") {
+				if (entity->hasComponent<CState>() && entity->getComponent<CState>().state == "inactive") {
+					if (checkCollision(*m_player, *entity)) {
+						// Ativa a caixa
+						entity->getComponent<CState>().state = "active";
+						std::cout << "Caixa interativa ativada: " << &entity << std::endl;
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -431,15 +474,28 @@ void Scene_Frogger::spawnInvisibleCollisionBox() {
 }
 
 
-void Scene_Frogger::spawnInteractiveBoxes() {
-	//Preciso de 4 boxes espalhadas horizontamelnente pelo cenario. Assim como o player, elas precisam de uma bounding box
-	//ela nao vao ter sprite mas elas devem estar desativadas. A numeor 1 deve ser ativada com 30s de jogo, a 2 com 60s, a 3 com 90s e a 4 com 120s
-	sf::Vector2f viewSize = m_worldView.getSize();
-	//first one on the left
-	m_interactiveBox = m_entityManager.addEntity("interactiveBox");
-	m_interactiveBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
-	m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
+void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
 	
+	switch (boxIndex) {
+	case 1:
+		m_interactiveBox = m_entityManager.addEntity("interactiveBox");
+		m_interactiveBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
+		m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
+		m_interactiveBox->addComponent<CState>("inactive");
+		break;
+	case 2:
+		m_interactiveBox = m_entityManager.addEntity("interactiveBox");
+		m_interactiveBox->addComponent<CTransform>(sf::Vector2f(505.f, 320.f));
+		m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(50.f, 50.f));
+		m_interactiveBox->addComponent<CState>("inactive");
+		break;
+	case 3:
+		m_interactiveBox = m_entityManager.addEntity("interactiveBox");
+		m_interactiveBox->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
+		m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(115.f, 100.f));
+		m_interactiveBox->addComponent<CState>("inactive");
+		break;
+		// Adicione mais casos aqui para outras caixas, se necessário.
+	}
 	
-
 }

@@ -41,6 +41,8 @@ private:
 	void sAnimation(sf::Time dt);
 	void applyGravity(sf::Time dt);
 	void onEnd();
+	bool m_boxCreated[3] = { false, false, false };
+	sf::Time m_elapsedTime = sf::Time::Zero;
 
 
 	void playerMovement();
@@ -49,7 +51,7 @@ private:
 	void checkPlayerGroundStatus();
 	float getGroundLevelAt(float x);
 	bool isOnInvisibleBox() const;
-	void spawnInteractiveBoxes();
+	void spawnInteractiveBoxes(int boxIndex);
 	
 	
 	void spawnPlayer(sf::Vector2f pos);
