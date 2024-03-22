@@ -111,29 +111,38 @@ void Scene_Frogger::init(const std::string& path) {
 }
 
 
-#pragma region Update Game State
 
+//Criacao de Remocao de caixas Interativas
 void Scene_Frogger::update(sf::Time dt) {
 	m_elapsedTime += dt;
 
-	// Cria a primeira caixa interativa após 10 segundos
-	if (!m_boxCreated[0] && m_elapsedTime >= sf::seconds(10)) {
-		spawnInteractiveBoxes(1); // Índice 1 para a primeira caixa
+	if (!m_boxCreated[0] && m_elapsedTime >= sf::seconds(5)) {
+		spawnInteractiveBoxes(0);
 		m_boxCreated[0] = true;
 	}
 
-	// Cria a segunda caixa interativa após 20 segundos
-	if (!m_boxCreated[1] && m_elapsedTime >= sf::seconds(20)) {
-		spawnInteractiveBoxes(2); // Índice 2 para a segunda caixa
+	if (!m_boxCreated[1] && m_elapsedTime >= sf::seconds(10)) {
+		spawnInteractiveBoxes(1);
 		m_boxCreated[1] = true;
 	}
 
-	// Cria a terceira caixa interativa após 30 segundos
-	if (!m_boxCreated[2] && m_elapsedTime >= sf::seconds(30)) {
-		spawnInteractiveBoxes(3); // Índice 3 para a terceira caixa
+	if (!m_boxCreated[2] && m_elapsedTime >= sf::seconds(15)) {
+		spawnInteractiveBoxes(2);
 		m_boxCreated[2] = true;
 	}
 
+	if (m_boxCreated[0] && m_elapsedTime >= sf::seconds(10)) {
+		removeInteractiveBoxes(0);
+		m_boxCreated[0] = false;
+	}
+	if (m_boxCreated[1] && m_elapsedTime >= sf::seconds(15)) {
+		removeInteractiveBoxes(1);
+		m_boxCreated[1] = false;
+	}
+	if (m_boxCreated[2] && m_elapsedTime >= sf::seconds(20)) {
+		removeInteractiveBoxes(2);
+		m_boxCreated[2] = false;
+	}
 	sUpdate(dt);
 	if (m_player->getComponent<CState>().state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
 	}
@@ -181,7 +190,6 @@ bool Scene_Frogger::isOnGround() const {
 	auto& transform = m_player->getComponent<CTransform>();
 	auto& boundingBox = m_player->getComponent<CBoundingBox>();
 
-	//Bounding box location
 	float groundHeight = 500;
 
 	if ((transform.pos.y + boundingBox.halfSize.y) > groundHeight) {
@@ -475,27 +483,37 @@ void Scene_Frogger::spawnInvisibleCollisionBox() {
 
 
 void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
-	
-	switch (boxIndex) {
-	case 1:
-		m_interactiveBox = m_entityManager.addEntity("interactiveBox");
-		m_interactiveBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
-		m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
-		m_interactiveBox->addComponent<CState>("inactive");
-		break;
-	case 2:
-		m_interactiveBox = m_entityManager.addEntity("interactiveBox");
-		m_interactiveBox->addComponent<CTransform>(sf::Vector2f(505.f, 320.f));
-		m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(50.f, 50.f));
-		m_interactiveBox->addComponent<CState>("inactive");
-		break;
-	case 3:
-		m_interactiveBox = m_entityManager.addEntity("interactiveBox");
-		m_interactiveBox->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
-		m_interactiveBox->addComponent<CBoundingBox>(sf::Vector2f(115.f, 100.f));
-		m_interactiveBox->addComponent<CState>("inactive");
-		break;
-		// Adicione mais casos aqui para outras caixas, se necessário.
+	if (boxIndex >= m_interactiveBoxes.size()) {
+		m_interactiveBoxes.resize(boxIndex + 1, nullptr);
 	}
-	
+	if (m_interactiveBoxes[boxIndex] != nullptr) {
+		return; 
+	}
+
+	std::shared_ptr<Entity> box = m_entityManager.addEntity("interactiveBox");
+
+	switch (boxIndex) {
+	case 0: 
+		box->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
+		break;
+	case 1: 
+		box->addComponent<CTransform>(sf::Vector2f(505.f, 320.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(50.f, 50.f));
+		break;
+	case 2: 
+		box->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(115.f, 100.f));
+		break;
+	}
+
+	box->addComponent<CState>("inactive"); 
+	m_interactiveBoxes[boxIndex] = box;
+}
+
+void Scene_Frogger::removeInteractiveBoxes(int boxIndex) {
+	if (boxIndex < m_interactiveBoxes.size() && m_interactiveBoxes[boxIndex] != nullptr) {
+		m_interactiveBoxes[boxIndex]->getComponent<CTransform>().pos = sf::Vector2f(-1000, -1000);
+		m_interactiveBoxes[boxIndex] = nullptr;
+	}
 }

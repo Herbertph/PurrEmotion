@@ -22,17 +22,20 @@ private:
 	sPtrEntt m_interactiveBox{ nullptr };
 	sf::View m_worldView;
 	sf::FloatRect m_worldBounds;
-
+	sf::Time m_elapsedTime = sf::Time::Zero;
 	sf::Font m_font;
+
 
 
 	bool m_drawTextures{ true };
 	bool m_drawAABB{ false };
 	bool m_drawGrid{ false };
-
+	bool m_boxCreated[3] = { false, false, false };
 
 	int m_score{ 0 };
 	std::unordered_map<std::string, bool> m_laneCrossed;
+	std::unordered_map<int, sf::Time> m_boxLifeTime;
+	std::vector<std::shared_ptr<Entity>> m_interactiveBoxes;
 
 
 	void sMovement(sf::Time dt);
@@ -41,8 +44,8 @@ private:
 	void sAnimation(sf::Time dt);
 	void applyGravity(sf::Time dt);
 	void onEnd();
-	bool m_boxCreated[3] = { false, false, false };
-	sf::Time m_elapsedTime = sf::Time::Zero;
+	
+	
 
 
 	void playerMovement();
@@ -52,6 +55,7 @@ private:
 	float getGroundLevelAt(float x);
 	bool isOnInvisibleBox() const;
 	void spawnInteractiveBoxes(int boxIndex);
+	void removeInteractiveBoxes(int boxIndex);
 	
 	
 	void spawnPlayer(sf::Vector2f pos);
