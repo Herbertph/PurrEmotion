@@ -44,6 +44,15 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 	MusicPlayer::getInstance().play("gameTheme");
 	MusicPlayer::getInstance().setVolume(40);
 
+	fadeOutRect.setSize(sf::Vector2f(gameEngine->window().getSize().x, gameEngine->window().getSize().y));
+	fadeOutRect.setFillColor(sf::Color(0, 0, 0, 0)); 
+
+	
+	finalText.setFont(Assets::getInstance().getFont("main"));
+	finalText.setCharacterSize(24);
+	finalText.setFillColor(sf::Color::White);
+	finalText.setPosition(100, 100); 
+
 }
 
 void Scene_Frogger::loadLevel(const std::string& path) {
@@ -114,13 +123,12 @@ void Scene_Frogger::update(sf::Time dt) {
 	m_elapsedTime += dt;
 
 	if (currentTextIndex < timedTexts.size() && m_elapsedTime >= timedTexts[currentTextIndex].endTime) {
-		// Avança para o próximo texto se o tempo do texto atual acabou
+		
 		currentTextIndex++;
 	}
 
 	if (currentTextIndex >= timedTexts.size()) {
-		// Talvez definir currentTextIndex para um valor que indica "nenhum texto para mostrar"
-		// ou recomeçar a sequência de textos, dependendo do desejado.
+		
 	}
 
 	if (currentTextIndex < timedTexts.size() && charIndex < timedTexts[currentTextIndex].text.length()) {
@@ -147,8 +155,8 @@ void Scene_Frogger::update(sf::Time dt) {
 	}
 
 	if (!conditionalTextAddedSecond && m_elapsedTime >= sf::seconds(55)) {
-		secondText(); // Atualiza os textos com base no estado atual das caixas
-		conditionalTextAddedSecond = true; // Para garantir que secondText() seja chamado apenas uma vez, se necessário
+		secondText(); 
+		conditionalTextAddedSecond = true; 
 	}
 
 	if (!conditionalTextAddedThird && m_elapsedTime >= sf::seconds(115)) {
@@ -156,9 +164,13 @@ void Scene_Frogger::update(sf::Time dt) {
 		conditionalTextAddedThird = true;
 	}
 
-	if (!conditionalTextAddedFinish && m_elapsedTime >= sf::seconds(165)) {
+	if (!conditionalTextAddedFinish && m_elapsedTime >= sf::seconds(170)) {
 		finishText();
 		conditionalTextAddedFinish = true;
+	}
+
+	if (m_elapsedTime >= sf::seconds(180)) {
+		endGame();
 	}
 
 	//Boxes Control
@@ -195,16 +207,6 @@ void Scene_Frogger::update(sf::Time dt) {
 	sUpdate(dt);
 	if (m_player->getComponent<CState>().state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
 	}
-
-	/*if (!conditionalTextAdded && m_elapsedTime >= sf::seconds(55)) {
-		if (m_interactiveBoxes.size() > 0 && m_interactiveBoxes[0] != nullptr && m_interactiveBoxes[0]->getComponent<CState>().state == "active") {
-			timedTexts.push_back({ "Caixa ativa.", sf::seconds(55), sf::seconds(60) });
-		}
-		else {
-			timedTexts.push_back({ "Caixa nao ativada", sf::seconds(55), sf::seconds(60) });
-		}
-		conditionalTextAdded = true;
-	}*/
 }
 
 void Scene_Frogger::sUpdate(sf::Time dt) {
@@ -394,6 +396,21 @@ void Scene_Frogger::sRender() {
 		m_game->window().draw(textBackground);
 		m_game->window().draw(displayText);   
 	}
+
+	if (isFadingOut) {
+		auto color = fadeOutRect.getFillColor();
+		if (color.a < 255 - fadeOutSpeed) {
+			color.a += fadeOutSpeed;
+		}
+		else {
+			color.a = 255;
+		}
+		fadeOutRect.setFillColor(color);
+		m_game->window().draw(fadeOutRect);
+
+		m_game->window().draw(textBackground);
+		m_game->window().draw(finalText);
+	}
 }
 
 void Scene_Frogger::drawBackground() {
@@ -463,14 +480,15 @@ void Scene_Frogger::sDoAction(const Command& action) {
 		auto& playerTransform = m_player->getComponent<CTransform>();
 		for (auto& box : m_interactiveBoxes) {
 			if (box != nullptr && checkCollision(*m_player, *box)) {
-				box->getComponent<CState>().state = "active";				
+				box->getComponent<CState>().state = "active";	
+				activatedBoxes++;
+				std::cout << "Activated Boxes: " << activatedBoxes << std::endl;
 				std::cout << "New State of the Box: " << box->getComponent<CState>().state << std::endl;
 				SoundPlayer::getInstance().play("meow");
-				//diminuir o volume do sound
-
 			}
 		}
 	}
+
 }
 
 void Scene_Frogger::sAnimation(sf::Time dt) {
@@ -577,7 +595,6 @@ void Scene_Frogger::initTexts() {
 	displayText.setFillColor(sf::Color::White);
 	displayText.setPosition(100, 100);
 
-	// Configura a caixa de fundo para o texto
 	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
 	textBackground.setPosition(90, 90); 
 	textBackground.setOutlineColor(sf::Color::White);
@@ -636,13 +653,11 @@ void Scene_Frogger::thirdText() {
 	displayText.setPosition(100, 100);
 
 	
-	// Configura a caixa de fundo para o texto
 	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
 	textBackground.setPosition(90, 90);
 	textBackground.setOutlineColor(sf::Color::White);
 	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
 
-	//checar se interactivebox0 está ativa
 	if (checkBox0State()) {
 		timedTexts.push_back({ "Okay... maybe you're right.", sf::seconds(120), sf::seconds(125) });
 		timedTexts.push_back({ "", sf::seconds(125), sf::seconds(130) });
@@ -652,7 +667,6 @@ void Scene_Frogger::thirdText() {
 		timedTexts.push_back({ "", sf::seconds(125), sf::seconds(130) });
 	}
 
-	//Texts texts texts	
 	timedTexts.push_back({ "Or maybe I should try to get up...", sf::seconds(120), sf::seconds(125) });
 	timedTexts.push_back({ "Some days are more difficult than others... ", sf::seconds(126), sf::seconds(131) });
 	timedTexts.push_back({ "I wish I had some friends...", sf::seconds(131), sf::seconds(141) });
@@ -672,13 +686,11 @@ void Scene_Frogger::finishText() {
 	displayText.setPosition(100, 100);
 
 
-	// Configura a caixa de fundo para o texto
 	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
 	textBackground.setPosition(90, 90);
 	textBackground.setOutlineColor(sf::Color::White);
 	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
 
-	//checar se interactivebox0 está ativa
 	if (checkBox2State()) {
 		timedTexts.push_back({ "You have found it!", sf::seconds(180), sf::seconds(185) });
 		timedTexts.push_back({ "", sf::seconds(185), sf::seconds(190) });
@@ -709,4 +721,29 @@ bool Scene_Frogger::checkBox2State() {
 		return m_interactiveBoxes[2]->getComponent<CState>().state == "active";
 	}
 	return false;
+}
+
+void Scene_Frogger::endGame() {
+	
+	std::string resultText;
+	if (activatedBoxes == 3) {
+		resultText = "Today you made my day better.\n I promise to try my best to make tomorrow a little better.";
+	}
+	else if (activatedBoxes > 0) {
+		resultText = "Thanks for trying... maybe tomorrow will be better";
+	}
+	else {
+		resultText = "I think the best thing... is to go back to sleep.";
+	}
+
+	finalText.setString(resultText);
+	sf::FloatRect textRect = finalText.getLocalBounds();
+	finalText.setOrigin(textRect.width / 2, textRect.height / 2);
+	finalText.setPosition(sf::Vector2f(m_game->window().getSize().x / 2, m_game->window().getSize().y / 2));
+
+	textBackground.setSize(sf::Vector2f(textRect.width + 60, textRect.height + 60));
+	textBackground.setOrigin(textBackground.getSize().x / 2, textBackground.getSize().y / 2);
+	textBackground.setPosition(finalText.getPosition());
+
+	isFadingOut = true;
 }

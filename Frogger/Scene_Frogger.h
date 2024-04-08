@@ -52,6 +52,7 @@ private:
 	bool m_drawAABB{ false };
 	bool m_drawGrid{ false };
 	bool m_boxCreated[3] = { false, false, false };
+	int activatedBoxes = 0;
 
 	int m_score{ 0 };
 	std::unordered_map<std::string, bool> m_laneCrossed;
@@ -66,15 +67,18 @@ private:
 	void applyGravity(sf::Time dt);
 	void onEnd();
 	
-	
+	sf::RectangleShape fadeOutRect;
+	sf::Text finalText;
+	bool isFadingOut = false;
+	float fadeOutSpeed = 5;
+	int activatedBoxesCount = 0;
+
 
 
 	void playerMovement();
 	void adjustPlayerPosition();
 	void spawnInvisibleCollisionBox();
-	void checkPlayerGroundStatus();
 	float getGroundLevelAt(float x);
-	bool isOnInvisibleBox() const;
 	void spawnInteractiveBoxes(int boxIndex);
 	void removeInteractiveBoxes(int boxIndex);
 	void initTexts();
@@ -88,6 +92,7 @@ private:
 	bool checkBox0State();
 	bool checkBox1State();
 	bool checkBox2State();
+	void endGame();
 	
 	void spawnPlayer(sf::Vector2f pos);
 
