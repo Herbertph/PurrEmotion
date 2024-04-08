@@ -18,10 +18,7 @@ namespace {
 	std::random_device rd;
 	std::mt19937 rng(rd());
 }
-
-
-const float GRAVITY_SPEED = 100.f;
-
+const float GRAVITY_SPEED = 150.f;
 
 #pragma region Constructor and Initialization
 Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPath)
@@ -54,7 +51,9 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 	finalText.setPosition(100, 100); 
 
 }
+#pragma endregion
 
+#pragma region Load and Level Config
 void Scene_Frogger::loadLevel(const std::string& path) {
 	std::ifstream config(path);
 	if (config.fail()) {
@@ -114,11 +113,64 @@ void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
 	m_player->addComponent<CState>("grounded");
 }
 
+void Scene_Frogger::spawnInvisibleCollisionBox() {
 
-void Scene_Frogger::init(const std::string& path) {
+	sf::Vector2f viewSize = m_worldView.getSize();
+
+
+	//left
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+	//right
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(115.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+	//bed
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(505.f, 350.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(220.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
+	//drawn a line in the middle of initial position of the player
+	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(480.f, 490.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(1000.f, 1.f));
+	m_invisibleCollisionBox->addComponent<CState>("grounded");
+
 }
 
+void Scene_Frogger::initTexts() {
+	displayText.setFont(Assets::getInstance().getFont("main"));
+	displayText.setCharacterSize(24);
+	displayText.setFillColor(sf::Color::White);
+	displayText.setPosition(100, 100);
 
+	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
+	textBackground.setPosition(90, 90);
+	textBackground.setOutlineColor(sf::Color::White);
+	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
+
+	timedTexts.push_back({ "The rays of sun blinds me...", sf::seconds(5), sf::seconds(10) });
+	timedTexts.push_back({ "I reach for a pillow and smother my face with it.", sf::seconds(11), sf::seconds(15) });
+	timedTexts.push_back({ "Moving my arms invite pain.", sf::seconds(16), sf::seconds(21) });
+	timedTexts.push_back({ "I close my eyes...", sf::seconds(22), sf::seconds(27) });
+	timedTexts.push_back({ "A thick fog encompasses my brain.", sf::seconds(28), sf::seconds(33) });
+	timedTexts.push_back({ "Sweet.. sleep is coming back, but its hopeless.", sf::seconds(34), sf::seconds(38) });
+	timedTexts.push_back({ "Another thought invades my brain.", sf::seconds(39), sf::seconds(45) });
+	timedTexts.push_back({ "Sometimes just a familiar meow over my bed brings me back to reality...", sf::seconds(46), sf::seconds(56) });
+	timedTexts.push_back({ " ", sf::seconds(46), sf::seconds(60) });
+
+
+}
+
+#pragma endregion
+
+#pragma region Updates
 void Scene_Frogger::update(sf::Time dt) {
 	m_elapsedTime += dt;
 
@@ -225,6 +277,75 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 	m_elapsedTime += dt;
 }
 
+#pragma endregion
+
+#pragma region Events and Actions
+void Scene_Frogger::sDoAction(const Command& action) {
+	if (action.type() == "START") {
+		if (action.name() == "PAUSE") { setPaused(!m_isPaused); }
+		else if (action.name() == "QUIT") { m_game->quitLevel(); }
+		else if (action.name() == "BACK") { m_game->backLevel(); }
+
+		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
+		else if (action.name() == "TOGGLE_COLLISION") { m_drawAABB = !m_drawAABB; }
+		else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
+
+
+		if (action.name() == "LEFT") { m_player->getComponent<CInput>().dir = CInput::LEFT; }
+		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().dir = CInput::RIGHT; }
+		else if (action.name() == "UP") { m_player->getComponent<CInput>().dir = CInput::UP; }
+		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().dir = CInput::DOWN; }
+
+	}
+
+	else if (action.type() == "END" && (action.name() == "LEFT" || action.name() == "RIGHT" || action.name() == "UP" ||
+		action.name() == "DOWN")) {
+		m_player->getComponent<CInput>().dir = 0;
+	}
+	if (action.type() == "START" && action.name() == "ACTIVATE") {
+		auto& playerTransform = m_player->getComponent<CTransform>();
+		for (auto& box : m_interactiveBoxes) {
+			if (box != nullptr && checkCollision(*m_player, *box)) {
+				box->getComponent<CState>().state = "active";
+				activatedBoxes++;
+				std::cout << "Activated Boxes: " << activatedBoxes << std::endl;
+				std::cout << "New State of the Box: " << box->getComponent<CState>().state << std::endl;
+				SoundPlayer::getInstance().play("meow");
+			}
+		}
+	}
+
+}
+
+#pragma endregion
+
+#pragma region Animation and Movement
+
+void Scene_Frogger::sMovement(sf::Time dt) {
+	playerMovement();
+
+	for (auto e : m_entityManager.getEntities()) {
+		if (e->hasComponent<CInput>()) continue;
+
+		if (e->hasComponent<CTransform>()) {
+			auto& tfm = e->getComponent<CTransform>();
+			tfm.pos += tfm.vel * dt.asSeconds();
+			tfm.angle += tfm.angVel * dt.asSeconds();
+
+		}
+	}
+}
+
+void Scene_Frogger::sAnimation(sf::Time dt) {
+	auto list = m_entityManager.getEntities();
+	for (auto e : m_entityManager.getEntities()) {
+		if (e->hasComponent<CAnimation>()) {
+			auto& anim = e->getComponent<CAnimation>();
+			anim.animation.update(dt);
+		}
+	}
+}
+
 void Scene_Frogger::applyGravity(sf::Time dt) {
 	auto& state = m_player->getComponent<CState>().state;
 	if (state == "jumping") {
@@ -240,6 +361,105 @@ void Scene_Frogger::applyGravity(sf::Time dt) {
 			vel.y = 0; 
 		}
 	}
+}
+
+void Scene_Frogger::adjustPlayerPosition() {
+	auto center = m_worldView.getCenter();
+	sf::Vector2f viewHalfSize = m_worldView.getSize() / 2.f;
+
+
+	auto left = 25;
+	auto right = 975;
+	auto top = center.y - viewHalfSize.y;
+	auto bot = 500;
+
+	auto& player_pos = m_player->getComponent<CTransform>().pos;
+	auto halfSize = sf::Vector2f{ 20, 20 };
+	player_pos.x = std::max(player_pos.x, left + halfSize.x);
+	player_pos.x = std::min(player_pos.x, right - halfSize.x);
+	player_pos.y = std::max(player_pos.y, top + halfSize.y);
+	player_pos.y = std::min(player_pos.y, bot - halfSize.y);
+}
+
+void Scene_Frogger::playerMovement() {
+	auto& dir = m_player->getComponent<CInput>().dir;
+	auto& pos = m_player->getComponent<CTransform>().pos;
+	auto& vel = m_player->getComponent<CTransform>().vel;
+	auto& state = m_player->getComponent<CState>().state;
+
+
+	if (dir & CInput::LEFT) {
+
+		pos.x -= 3;
+		if (state == "grounded" || state == "jumping") {
+			m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("left"));
+		}
+	}
+	if (dir & CInput::RIGHT) {
+
+		pos.x += 3;
+		if (state == "grounded" || state == "jumping") {
+			m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("right"));
+		}
+	}
+
+	if ((dir & CInput::UP) && state == "grounded") {
+		state = "jumping";
+		vel.y = -200;
+	}
+
+	if (dir == 0 && state == "grounded") {
+		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
+	}
+}
+
+#pragma endregion
+
+#pragma region Collisions
+
+void Scene_Frogger::sCollisions(sf::Time dt) {
+	auto& entities = m_entityManager.getEntities();
+	for (auto& entity : entities) {
+		if (entity->getTag() == "player") {
+			auto& playerTransform = entity->getComponent<CTransform>();
+			auto& playerBox = entity->getComponent<CBoundingBox>();
+
+			for (auto& other : entities) {
+				if (entity == other || !other->hasComponent<CBoundingBox>()) continue;
+
+				if (other->getTag() == "invisibleCollisionBox" && checkCollision(*entity, *other)) {
+					entity->getComponent<CState>().state = "grounded";
+					break;
+				}
+
+				else {
+					entity->getComponent<CState>().state = "jumping";
+				}
+
+			}
+		}
+	}
+}
+
+bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
+	if (entity1.hasComponent<CBoundingBox>() && entity2.hasComponent<CBoundingBox>()) {
+		auto& box1 = entity1.getComponent<CBoundingBox>();
+		auto& box2 = entity2.getComponent<CBoundingBox>();
+
+		sf::FloatRect rect1(
+			entity1.getComponent<CTransform>().pos.x - box1.size.x / 2.f,
+			entity1.getComponent<CTransform>().pos.y - box1.size.y / 2.f,
+			box1.size.x, box1.size.y);
+
+		sf::FloatRect rect2(
+			entity2.getComponent<CTransform>().pos.x - box2.size.x / 2.f,
+			entity2.getComponent<CTransform>().pos.y - box2.size.y / 2.f,
+			box2.size.x, box2.size.y);
+
+		bool collision = rect1.intersects(rect2);
+		return collision;
+	}
+	return false;
 }
 
 bool Scene_Frogger::isOnGround() const {
@@ -271,115 +491,15 @@ void Scene_Frogger::checkGroundCollision() {
 	}
 }
 
-void Scene_Frogger::sMovement(sf::Time dt) {
-	playerMovement();
+#pragma endregion
 
-	for (auto e : m_entityManager.getEntities()) {
-		if (e->hasComponent<CInput>()) continue;
-
-		if (e->hasComponent<CTransform>()) {
-			auto& tfm = e->getComponent<CTransform>();
-			tfm.pos += tfm.vel * dt.asSeconds();
-			tfm.angle += tfm.angVel * dt.asSeconds();
-
-		}
-	}
-}
-
-void Scene_Frogger::playerMovement() {
-	auto& dir = m_player->getComponent<CInput>().dir;
-	auto& pos = m_player->getComponent<CTransform>().pos;
-	auto& vel = m_player->getComponent<CTransform>().vel; 
-	auto& state = m_player->getComponent<CState>().state;
-
-	
-	if (dir & CInput::LEFT) {
-		
-		pos.x -= 3; 
-		if (state == "grounded" || state == "jumping") { 
-			m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("left"));
-		}
-	}
-	if (dir & CInput::RIGHT) {
-		
-		pos.x += 3; 
-		if (state == "grounded" || state == "jumping") { 
-			m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("right"));
-		}
-	}
-
-	if ((dir & CInput::UP) && state == "grounded") {
-		state = "jumping";
-		vel.y = -200; 
-	}
-
-	if (dir == 0 && state == "grounded") {
-		m_player->addComponent<CAnimation>(Assets::getInstance().getAnimation("up"));
-	}
-}
-
-void Scene_Frogger::sCollisions(sf::Time dt) {
-	auto& entities = m_entityManager.getEntities();
-	for (auto& entity : entities) {
-		if (entity->getTag() == "player") {
-			auto& playerTransform = entity->getComponent<CTransform>();
-			auto& playerBox = entity->getComponent<CBoundingBox>();
-
-			for (auto& other : entities) {
-				if (entity == other || !other->hasComponent<CBoundingBox>()) continue;
-
-				if (other->getTag() == "invisibleCollisionBox" && checkCollision(*entity, *other)) {
-					entity->getComponent<CState>().state = "grounded";
-					break; 
-				}
-				
-				else {
-					entity->getComponent<CState>().state = "jumping";
-				}
-
-			}
-		}
-	}
-}
-
-
-float Scene_Frogger::getGroundLevelAt(float x) {
-	return 500.0f; 
-}
-
-
-bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
-	if (entity1.hasComponent<CBoundingBox>() && entity2.hasComponent<CBoundingBox>()) {
-		auto& box1 = entity1.getComponent<CBoundingBox>();
-		auto& box2 = entity2.getComponent<CBoundingBox>();
-
-		sf::FloatRect rect1(
-			entity1.getComponent<CTransform>().pos.x - box1.size.x / 2.f,
-			entity1.getComponent<CTransform>().pos.y - box1.size.y / 2.f,
-			box1.size.x, box1.size.y);
-
-		sf::FloatRect rect2(
-			entity2.getComponent<CTransform>().pos.x - box2.size.x / 2.f,
-			entity2.getComponent<CTransform>().pos.y - box2.size.y / 2.f,
-			box2.size.x, box2.size.y);
-
-		bool collision = rect1.intersects(rect2);
-		return collision;
-	}
-	return false;
-}
-
-
-
-sf::FloatRect Scene_Frogger::getViewBounds() {
-	return sf::FloatRect();
-}
+#pragma region Render
 
 void Scene_Frogger::sRender() {
 	m_game->window().setView(m_worldView);
 	drawBackground();
 	drawEntities();
-	
+
 	if (m_drawAABB) {
 		for (auto& e : m_entityManager.getEntities()) {
 			if (e->hasComponent<CBoundingBox>()) {
@@ -391,10 +511,10 @@ void Scene_Frogger::sRender() {
 	textBackground.setSize(sf::Vector2f(displayText.getGlobalBounds().width + 20, displayText.getGlobalBounds().height + 30));
 	textBackground.setPosition(displayText.getPosition().x - 10, displayText.getPosition().y - 10);
 
-	
+
 	if (!displayText.getString().isEmpty()) {
 		m_game->window().draw(textBackground);
-		m_game->window().draw(displayText);   
+		m_game->window().draw(displayText);
 	}
 
 	if (isFadingOut) {
@@ -448,170 +568,9 @@ void Scene_Frogger::drawBoundingBox(std::shared_ptr<Entity> entity) {
 	m_game->window().draw(rect);
 }
 
+#pragma endregion
 
-
-void Scene_Frogger::onEnd() {
-	m_game->changeScene("MENU", nullptr, false);
-}
-
-void Scene_Frogger::sDoAction(const Command& action) {
-	if (action.type() == "START") {
-		if (action.name() == "PAUSE") { setPaused(!m_isPaused); }
-		else if (action.name() == "QUIT") { m_game->quitLevel(); }
-		else if (action.name() == "BACK") { m_game->backLevel(); }
-
-		else if (action.name() == "TOGGLE_TEXTURE") { m_drawTextures = !m_drawTextures; }
-		else if (action.name() == "TOGGLE_COLLISION") { m_drawAABB = !m_drawAABB; }
-		else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
-
-
-		if (action.name() == "LEFT") { m_player->getComponent<CInput>().dir = CInput::LEFT; }
-		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().dir = CInput::RIGHT; }
-		else if (action.name() == "UP") { m_player->getComponent<CInput>().dir = CInput::UP; }
-		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().dir = CInput::DOWN; }
-	
-	}
-
-	else if (action.type() == "END" && (action.name() == "LEFT" || action.name() == "RIGHT" || action.name() == "UP" ||
-		action.name() == "DOWN")) {
-		m_player->getComponent<CInput>().dir = 0;
-	}
-	if (action.type() == "START" && action.name() == "ACTIVATE") {
-		auto& playerTransform = m_player->getComponent<CTransform>();
-		for (auto& box : m_interactiveBoxes) {
-			if (box != nullptr && checkCollision(*m_player, *box)) {
-				box->getComponent<CState>().state = "active";	
-				activatedBoxes++;
-				std::cout << "Activated Boxes: " << activatedBoxes << std::endl;
-				std::cout << "New State of the Box: " << box->getComponent<CState>().state << std::endl;
-				SoundPlayer::getInstance().play("meow");
-			}
-		}
-	}
-
-}
-
-void Scene_Frogger::sAnimation(sf::Time dt) {
-	auto list = m_entityManager.getEntities();
-	for (auto e : m_entityManager.getEntities()) {
-		if (e->hasComponent<CAnimation>()) {
-			auto& anim = e->getComponent<CAnimation>();
-			anim.animation.update(dt);
-		}
-	}
-}
-
-void Scene_Frogger::adjustPlayerPosition() {
-	auto center = m_worldView.getCenter();
-	sf::Vector2f viewHalfSize = m_worldView.getSize() / 2.f;
-
-
-	auto left = 25;
-	auto right = 975;
-	auto top = center.y - viewHalfSize.y;
-	auto bot = 500;
-
-	auto& player_pos = m_player->getComponent<CTransform>().pos;
-	auto halfSize = sf::Vector2f{ 20, 20 };
-	player_pos.x = std::max(player_pos.x, left + halfSize.x);
-	player_pos.x = std::min(player_pos.x, right - halfSize.x);
-	player_pos.y = std::max(player_pos.y, top + halfSize.y);
-	player_pos.y = std::min(player_pos.y, bot - halfSize.y);
-}
-
-void Scene_Frogger::spawnInvisibleCollisionBox() {
-
-	sf::Vector2f viewSize = m_worldView.getSize();
-
-
-	//left
-	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
-	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
-	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(135.f, 1.f));
-	m_invisibleCollisionBox->addComponent<CState>("grounded");
-
-	//right
-	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
-	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
-	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(115.f, 1.f));
-	m_invisibleCollisionBox->addComponent<CState>("grounded");
-
-	//bed
-	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
-	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(505.f, 350.f));
-	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(220.f, 1.f));
-	m_invisibleCollisionBox->addComponent<CState>("grounded");
-
-	//drawn a line in the middle of initial position of the player
-	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
-	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(480.f, 490.f));
-	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(1000.f, 1.f));
-	m_invisibleCollisionBox->addComponent<CState>("grounded");
-
-}
-
-void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
-	if (boxIndex >= m_interactiveBoxes.size()) {
-		m_interactiveBoxes.resize(boxIndex + 1, nullptr);
-	}
-	if (m_interactiveBoxes[boxIndex] != nullptr) {
-		return; 
-	}
-
-	std::shared_ptr<Entity> box = m_entityManager.addEntity("interactiveBox");
-
-	switch (boxIndex) {
-	case 0: 
-		box->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
-		box->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
-		box->getComponent<CState>().state = "inactive";
-
-		break;
-	case 1: 
-		box->addComponent<CTransform>(sf::Vector2f(505.f, 350.f));
-		box->addComponent<CBoundingBox>(sf::Vector2f(220.f, 50.f));
-		box->getComponent<CState>().state = "inactive";
-
-		break;
-	case 2: 
-		box->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
-		box->addComponent<CBoundingBox>(sf::Vector2f(115.f, 100.f));
-		box->getComponent<CState>().state = "inactive";
-
-	} 
-	m_interactiveBoxes[boxIndex] = box;
-}
-
-void Scene_Frogger::removeInteractiveBoxes(int boxIndex) {
-	if (boxIndex < m_interactiveBoxes.size() && m_interactiveBoxes[boxIndex] != nullptr) {
-		m_interactiveBoxes[boxIndex]->getComponent<CTransform>().pos = sf::Vector2f(-1000, -1000);
-		m_interactiveBoxes[boxIndex] = nullptr;
-	}
-}
-
-void Scene_Frogger::initTexts() {
-	displayText.setFont(Assets::getInstance().getFont("main"));
-	displayText.setCharacterSize(24);
-	displayText.setFillColor(sf::Color::White);
-	displayText.setPosition(100, 100);
-
-	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
-	textBackground.setPosition(90, 90); 
-	textBackground.setOutlineColor(sf::Color::White);
-	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
-
-	timedTexts.push_back({ "The rays of sun blinds me...", sf::seconds(5), sf::seconds(10) });
-	timedTexts.push_back({ "I reach for a pillow and smother my face with it.", sf::seconds(11), sf::seconds(15) });
-	timedTexts.push_back({ "Moving my arms invite pain.", sf::seconds(16), sf::seconds(21) });
-	timedTexts.push_back({ "I close my eyes...", sf::seconds(22), sf::seconds(27) });
-	timedTexts.push_back({ "A thick fog encompasses my brain.", sf::seconds(28), sf::seconds(33) });
-	timedTexts.push_back({ "Sweet.. sleep is coming back, but its hopeless.", sf::seconds(34), sf::seconds(38) });
-	timedTexts.push_back({ "Another thought invades my brain.", sf::seconds(39), sf::seconds(45) });
-	timedTexts.push_back({ "Sometimes just a familiar meow over my bed brings me back to reality...", sf::seconds(46), sf::seconds(56) });
-	timedTexts.push_back({ " ", sf::seconds(46), sf::seconds(60) });
-	
-
-}
+#pragma region Texts
 
 void Scene_Frogger::secondText() {
 	displayText.setFont(Assets::getInstance().getFont("main"));
@@ -646,13 +605,13 @@ void Scene_Frogger::secondText() {
 }
 
 void Scene_Frogger::thirdText() {
-	
+
 	displayText.setFont(Assets::getInstance().getFont("main"));
 	displayText.setCharacterSize(24);
 	displayText.setFillColor(sf::Color::White);
 	displayText.setPosition(100, 100);
 
-	
+
 	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
 	textBackground.setPosition(90, 90);
 	textBackground.setOutlineColor(sf::Color::White);
@@ -702,29 +661,12 @@ void Scene_Frogger::finishText() {
 
 }
 
-bool Scene_Frogger::checkBox0State() {
-	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[0] != nullptr) {
-		return m_interactiveBoxes[0]->getComponent<CState>().state == "active";
-	}
-	return false;
-}
+#pragma endregion
 
-bool Scene_Frogger::checkBox1State() {
-	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[1] != nullptr) {
-		return m_interactiveBoxes[1]->getComponent<CState>().state == "active";
-	}
-	return false;
-}
-
-bool Scene_Frogger::checkBox2State() {
-	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[2] != nullptr) {
-		return m_interactiveBoxes[2]->getComponent<CState>().state == "active";
-	}
-	return false;
-}
+#pragma region EndGame
 
 void Scene_Frogger::endGame() {
-	
+
 	std::string resultText;
 	if (activatedBoxes == 3) {
 		resultText = "Today you made my day better.\n I promise to try my best to make tomorrow a little better.";
@@ -747,3 +689,124 @@ void Scene_Frogger::endGame() {
 
 	isFadingOut = true;
 }
+
+void Scene_Frogger::onEnd() {
+	m_game->changeScene("MENU", nullptr, false);
+}
+
+#pragma endregion
+
+#pragma region Support And Utilities
+
+float Scene_Frogger::getGroundLevelAt(float x) {
+	return 500.0f;
+}
+
+sf::FloatRect Scene_Frogger::getViewBounds() {
+	return sf::FloatRect();
+}
+
+void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
+	if (boxIndex >= m_interactiveBoxes.size()) {
+		m_interactiveBoxes.resize(boxIndex + 1, nullptr);
+	}
+	if (m_interactiveBoxes[boxIndex] != nullptr) {
+		return;
+	}
+
+	std::shared_ptr<Entity> box = m_entityManager.addEntity("interactiveBox");
+
+	switch (boxIndex) {
+	case 0:
+		box->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
+		box->getComponent<CState>().state = "inactive";
+
+		break;
+	case 1:
+		box->addComponent<CTransform>(sf::Vector2f(505.f, 350.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(220.f, 50.f));
+		box->getComponent<CState>().state = "inactive";
+
+		break;
+	case 2:
+		box->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(115.f, 100.f));
+		box->getComponent<CState>().state = "inactive";
+
+	}
+	m_interactiveBoxes[boxIndex] = box;
+}
+
+void Scene_Frogger::removeInteractiveBoxes(int boxIndex) {
+	if (boxIndex < m_interactiveBoxes.size() && m_interactiveBoxes[boxIndex] != nullptr) {
+		m_interactiveBoxes[boxIndex]->getComponent<CTransform>().pos = sf::Vector2f(-1000, -1000);
+		m_interactiveBoxes[boxIndex] = nullptr;
+	}
+}
+
+bool Scene_Frogger::checkBox0State() {
+	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[0] != nullptr) {
+		return m_interactiveBoxes[0]->getComponent<CState>().state == "active";
+	}
+	return false;
+}
+
+bool Scene_Frogger::checkBox1State() {
+	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[1] != nullptr) {
+		return m_interactiveBoxes[1]->getComponent<CState>().state == "active";
+	}
+	return false;
+}
+
+bool Scene_Frogger::checkBox2State() {
+	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[2] != nullptr) {
+		return m_interactiveBoxes[2]->getComponent<CState>().state == "active";
+	}
+	return false;
+}
+
+#pragma endregion
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
