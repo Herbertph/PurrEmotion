@@ -1,6 +1,7 @@
 #include "Scene_Menu.h"
 #include "Scene_Frogger.h"
 #include <memory>
+#include "Assets.h"
 
 void Scene_Menu::onEnd()
 {
@@ -11,13 +12,28 @@ Scene_Menu::Scene_Menu(GameEngine* gameEngine)
 	: Scene(gameEngine)
 {
 	init();
+	
 }
 
 
 
 void Scene_Menu::init()
 {
-	
+	if (!m_backgroundTexture.loadFromFile("../assets/menu.png")) {
+		std::cerr << "Failed to load menu background texture" << std::endl;
+	}
+
+	m_background.setTexture(m_backgroundTexture);
+
+	sf::Vector2u textureSize = m_backgroundTexture.getSize();
+
+	sf::Vector2u windowSize = m_game->window().getSize();
+
+	float scaleX = static_cast<float>(windowSize.x) / textureSize.x;
+	float scaleY = static_cast<float>(windowSize.y) / textureSize.y;
+
+	m_background.setScale(scaleX, scaleY);
+
 
 	registerAction(sf::Keyboard::W, "UP");
 	registerAction(sf::Keyboard::Up, "UP");
@@ -29,8 +45,8 @@ void Scene_Menu::init()
 
 	m_title = "PurrEmotion";
 	m_menuStrings.push_back("Start");
-	//m_menuStrings.push_back("Level 2");
-	//m_menuStrings.push_back("Level 3");
+	m_menuStrings.push_back("Exit Game");
+	
 
 	m_levelPaths.push_back("../assets/level1.txt");
 	m_levelPaths.push_back("../assets/level1.txt");
@@ -40,6 +56,7 @@ void Scene_Menu::init()
 
 	const size_t CHAR_SIZE{ 64 };
 	m_menuText.setCharacterSize(CHAR_SIZE);
+
 
 }
 
@@ -51,14 +68,17 @@ void Scene_Menu::update(sf::Time dt)
 
 void Scene_Menu::sRender()
 {
+	m_game->window().clear(sf::Color::Black);
 	
-	m_game->window().draw(m_background);
 	sf::View view = m_game->window().getView();
 	view.setCenter(m_game->window().getSize().x / 2.f, m_game->window().getSize().y / 2.f);
 	m_game->window().setView(view);
 
-	static const sf::Color selectedColor(255, 255, 255);
-	static const sf::Color normalColor(0, 0, 0);
+	m_game->window().draw(m_background);
+
+
+	static const sf::Color selectedColor(255, 255, 0);
+	static const sf::Color normalColor(0, 0, 255);
 
 	static const sf::Color backgroundColor(100, 100, 255);
 
@@ -67,24 +87,16 @@ void Scene_Menu::sRender()
 	footer.setFillColor(normalColor);
 	footer.setPosition(32, 700);
 
-	m_game->window().clear(backgroundColor);
-
-	m_menuText.setFillColor(normalColor);
-	m_menuText.setString(m_title);
-	m_menuText.setPosition(10, 10);
-	m_game->window().draw(m_menuText);
-
-	for (size_t i{ 0 }; i < m_menuStrings.size(); ++i)
+	/*for (size_t i{0}; i < m_menuStrings.size(); ++i)
 	{
 		m_menuText.setFillColor((i == m_menuIndex ? selectedColor : normalColor));
-		m_menuText.setPosition(32, 32 + (i + 1) * 96);
+		m_menuText.setStyle(sf::Text::Bold);
+		m_menuText.setPosition(650, 350 + (i + 1) * 70);
 		m_menuText.setString(m_menuStrings.at(i));
 		m_game->window().draw(m_menuText);
-	}
+	}*/
 
 	m_game->window().draw(footer);
-	//m_game->window().display();
-
 }
 
 
@@ -110,5 +122,4 @@ void Scene_Menu::sDoAction(const Command& action)
 			onEnd();
 		}
 	}
-
 }

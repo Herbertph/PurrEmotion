@@ -33,17 +33,16 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 
 	auto pos = m_worldView.getSize();
 
-	// Spawn frog in middle of first row
 	pos.x = pos.x / 2.f;
 	pos.y -= 20.f;
 
 	spawnInvisibleCollisionBox();
-	//spawnInteractiveBoxes();
+	initTexts();
 	spawnPlayer(pos);
 
 
 	MusicPlayer::getInstance().play("gameTheme");
-	MusicPlayer::getInstance().setVolume(50);
+	MusicPlayer::getInstance().setVolume(40);
 
 }
 
@@ -111,41 +110,101 @@ void Scene_Frogger::init(const std::string& path) {
 }
 
 
-
-//Criacao de Remocao de caixas Interativas
 void Scene_Frogger::update(sf::Time dt) {
 	m_elapsedTime += dt;
 
-	if (!m_boxCreated[0] && m_elapsedTime >= sf::seconds(5)) {
+	if (currentTextIndex < timedTexts.size() && m_elapsedTime >= timedTexts[currentTextIndex].endTime) {
+		// Avança para o próximo texto se o tempo do texto atual acabou
+		currentTextIndex++;
+	}
+
+	if (currentTextIndex >= timedTexts.size()) {
+		// Talvez definir currentTextIndex para um valor que indica "nenhum texto para mostrar"
+		// ou recomeçar a sequência de textos, dependendo do desejado.
+	}
+
+	if (currentTextIndex < timedTexts.size() && charIndex < timedTexts[currentTextIndex].text.length()) {
+		if (m_elapsedTime - lastCharUpdateTime > sf::seconds(0.05)) {
+			displayText.setString(timedTexts[currentTextIndex].text.substr(0, charIndex + 1));
+			charIndex++;
+			lastCharUpdateTime = m_elapsedTime;
+
+			textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
+			textBackground.setPosition(displayText.getPosition().x - 10, displayText.getPosition().y - 10);
+		}
+	}
+
+	if (currentTextIndex < timedTexts.size() && m_elapsedTime >= timedTexts[currentTextIndex].startTime) {
+	
+		if (m_elapsedTime > timedTexts[currentTextIndex].endTime || charIndex >= timedTexts[currentTextIndex].text.length()) {
+			currentTextIndex++;
+			charIndex = 0;
+			textStartTime = m_elapsedTime;
+			if (currentTextIndex >= timedTexts.size()) {
+				displayText.setString("");
+			}
+		}
+	}
+
+	if (!conditionalTextAddedSecond && m_elapsedTime >= sf::seconds(55)) {
+		secondText(); // Atualiza os textos com base no estado atual das caixas
+		conditionalTextAddedSecond = true; // Para garantir que secondText() seja chamado apenas uma vez, se necessário
+	}
+
+	if (!conditionalTextAddedThird && m_elapsedTime >= sf::seconds(115)) {
+		thirdText(); 
+		conditionalTextAddedThird = true;
+	}
+
+	if (!conditionalTextAddedFinish && m_elapsedTime >= sf::seconds(165)) {
+		finishText();
+		conditionalTextAddedFinish = true;
+	}
+
+	//Boxes Control
+	if (!m_boxCreated[0] && m_elapsedTime >= sf::seconds(106)) {
 		spawnInteractiveBoxes(0);
 		m_boxCreated[0] = true;
 	}
 
-	if (!m_boxCreated[1] && m_elapsedTime >= sf::seconds(10)) {
+	if (!m_boxCreated[1] && m_elapsedTime >= sf::seconds(46)) {
 		spawnInteractiveBoxes(1);
 		m_boxCreated[1] = true;
 	}
 
-	if (!m_boxCreated[2] && m_elapsedTime >= sf::seconds(15)) {
+	if (!m_boxCreated[2] && m_elapsedTime >= sf::seconds(160)) {
 		spawnInteractiveBoxes(2);
 		m_boxCreated[2] = true;
 	}
 
-	if (m_boxCreated[0] && m_elapsedTime >= sf::seconds(10)) {
+	if (m_boxCreated[0] && m_elapsedTime >= sf::seconds(120)) {
 		removeInteractiveBoxes(0);
 		m_boxCreated[0] = false;
 	}
-	if (m_boxCreated[1] && m_elapsedTime >= sf::seconds(15)) {
+	if (m_boxCreated[1] && m_elapsedTime >= sf::seconds(60)) {
 		removeInteractiveBoxes(1);
 		m_boxCreated[1] = false;
 	}
-	if (m_boxCreated[2] && m_elapsedTime >= sf::seconds(20)) {
+	if (m_boxCreated[2] && m_elapsedTime >= sf::seconds(170)) {
 		removeInteractiveBoxes(2);
 		m_boxCreated[2] = false;
 	}
+
+	
+
 	sUpdate(dt);
 	if (m_player->getComponent<CState>().state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
 	}
+
+	/*if (!conditionalTextAdded && m_elapsedTime >= sf::seconds(55)) {
+		if (m_interactiveBoxes.size() > 0 && m_interactiveBoxes[0] != nullptr && m_interactiveBoxes[0]->getComponent<CState>().state == "active") {
+			timedTexts.push_back({ "Caixa ativa.", sf::seconds(55), sf::seconds(60) });
+		}
+		else {
+			timedTexts.push_back({ "Caixa nao ativada", sf::seconds(55), sf::seconds(60) });
+		}
+		conditionalTextAdded = true;
+	}*/
 }
 
 void Scene_Frogger::sUpdate(sf::Time dt) {
@@ -162,9 +221,6 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 	sCollisions(dt);
 	
 	m_elapsedTime += dt;
-
-	
-
 }
 
 void Scene_Frogger::applyGravity(sf::Time dt) {
@@ -271,11 +327,10 @@ void Scene_Frogger::sCollisions(sf::Time dt) {
 				if (entity == other || !other->hasComponent<CBoundingBox>()) continue;
 
 				if (other->getTag() == "invisibleCollisionBox" && checkCollision(*entity, *other)) {
-					// Tratar as caixas invisíveis como chão
 					entity->getComponent<CState>().state = "grounded";
-					break; // Pode parar de verificar outras colisões se já encontrou chão
+					break; 
 				}
-				// if not touching anything, apply gravity
+				
 				else {
 					entity->getComponent<CState>().state = "jumping";
 				}
@@ -306,13 +361,9 @@ bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 			entity2.getComponent<CTransform>().pos.y - box2.size.y / 2.f,
 			box2.size.x, box2.size.y);
 
-		// Verifica se as bounding boxes se intersectam
 		bool collision = rect1.intersects(rect2);
-
 		return collision;
 	}
-
-	// Retorna falso se uma das entidades não tiver o componente CBoundingBox
 	return false;
 }
 
@@ -326,6 +377,7 @@ void Scene_Frogger::sRender() {
 	m_game->window().setView(m_worldView);
 	drawBackground();
 	drawEntities();
+	
 	if (m_drawAABB) {
 		for (auto& e : m_entityManager.getEntities()) {
 			if (e->hasComponent<CBoundingBox>()) {
@@ -333,7 +385,15 @@ void Scene_Frogger::sRender() {
 			}
 		}
 	}
+
+	textBackground.setSize(sf::Vector2f(displayText.getGlobalBounds().width + 20, displayText.getGlobalBounds().height + 30));
+	textBackground.setPosition(displayText.getPosition().x - 10, displayText.getPosition().y - 10);
+
 	
+	if (!displayText.getString().isEmpty()) {
+		m_game->window().draw(textBackground);
+		m_game->window().draw(displayText);   
+	}
 }
 
 void Scene_Frogger::drawBackground() {
@@ -378,7 +438,6 @@ void Scene_Frogger::onEnd() {
 }
 
 void Scene_Frogger::sDoAction(const Command& action) {
-	// On Key Press
 	if (action.type() == "START") {
 		if (action.name() == "PAUSE") { setPaused(!m_isPaused); }
 		else if (action.name() == "QUIT") { m_game->quitLevel(); }
@@ -388,42 +447,35 @@ void Scene_Frogger::sDoAction(const Command& action) {
 		else if (action.name() == "TOGGLE_COLLISION") { m_drawAABB = !m_drawAABB; }
 		else if (action.name() == "TOGGLE_GRID") { m_drawGrid = !m_drawGrid; }
 
-		// Player control
+
 		if (action.name() == "LEFT") { m_player->getComponent<CInput>().dir = CInput::LEFT; }
 		else if (action.name() == "RIGHT") { m_player->getComponent<CInput>().dir = CInput::RIGHT; }
 		else if (action.name() == "UP") { m_player->getComponent<CInput>().dir = CInput::UP; }
 		else if (action.name() == "DOWN") { m_player->getComponent<CInput>().dir = CInput::DOWN; }
 	
 	}
-	// on Key Release
-	// the frog can only go in one direction at a time, no angles
-	// use a bitset and exclusive setting.
+
 	else if (action.type() == "END" && (action.name() == "LEFT" || action.name() == "RIGHT" || action.name() == "UP" ||
 		action.name() == "DOWN")) {
 		m_player->getComponent<CInput>().dir = 0;
 	}
 	if (action.type() == "START" && action.name() == "ACTIVATE") {
-		for (auto& entity : m_entityManager.getEntities()) {
-			// Certifique-se de que a entidade é uma caixa interativa
-			if (entity->getTag() == "interactiveBox") {
-				if (entity->hasComponent<CState>() && entity->getComponent<CState>().state == "inactive") {
-					if (checkCollision(*m_player, *entity)) {
-						// Ativa a caixa
-						entity->getComponent<CState>().state = "active";
-						std::cout << "Caixa interativa ativada: " << &entity << std::endl;
-					}
-				}
+		auto& playerTransform = m_player->getComponent<CTransform>();
+		for (auto& box : m_interactiveBoxes) {
+			if (box != nullptr && checkCollision(*m_player, *box)) {
+				box->getComponent<CState>().state = "active";				
+				std::cout << "New State of the Box: " << box->getComponent<CState>().state << std::endl;
+				SoundPlayer::getInstance().play("meow");
+				//diminuir o volume do sound
+
 			}
 		}
 	}
 }
 
-
-
 void Scene_Frogger::sAnimation(sf::Time dt) {
 	auto list = m_entityManager.getEntities();
 	for (auto e : m_entityManager.getEntities()) {
-		// update all animations
 		if (e->hasComponent<CAnimation>()) {
 			auto& anim = e->getComponent<CAnimation>();
 			anim.animation.update(dt);
@@ -443,7 +495,6 @@ void Scene_Frogger::adjustPlayerPosition() {
 
 	auto& player_pos = m_player->getComponent<CTransform>().pos;
 	auto halfSize = sf::Vector2f{ 20, 20 };
-	// keep player in bounds
 	player_pos.x = std::max(player_pos.x, left + halfSize.x);
 	player_pos.x = std::min(player_pos.x, right - halfSize.x);
 	player_pos.y = std::max(player_pos.y, top + halfSize.y);
@@ -475,12 +526,11 @@ void Scene_Frogger::spawnInvisibleCollisionBox() {
 
 	//drawn a line in the middle of initial position of the player
 	m_invisibleCollisionBox = m_entityManager.addEntity("invisibleCollisionBox");
-	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(480.f, 480.f));
-	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(1000.f, 20.f));
+	m_invisibleCollisionBox->addComponent<CTransform>(sf::Vector2f(480.f, 490.f));
+	m_invisibleCollisionBox->addComponent<CBoundingBox>(sf::Vector2f(1000.f, 1.f));
 	m_invisibleCollisionBox->addComponent<CState>("grounded");
 
 }
-
 
 void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
 	if (boxIndex >= m_interactiveBoxes.size()) {
@@ -496,18 +546,21 @@ void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
 	case 0: 
 		box->addComponent<CTransform>(sf::Vector2f(110.f, 370.f));
 		box->addComponent<CBoundingBox>(sf::Vector2f(135.f, 100.f));
+		box->getComponent<CState>().state = "inactive";
+
 		break;
 	case 1: 
-		box->addComponent<CTransform>(sf::Vector2f(505.f, 320.f));
-		box->addComponent<CBoundingBox>(sf::Vector2f(50.f, 50.f));
+		box->addComponent<CTransform>(sf::Vector2f(505.f, 350.f));
+		box->addComponent<CBoundingBox>(sf::Vector2f(220.f, 50.f));
+		box->getComponent<CState>().state = "inactive";
+
 		break;
 	case 2: 
 		box->addComponent<CTransform>(sf::Vector2f(910.f, 380.f));
 		box->addComponent<CBoundingBox>(sf::Vector2f(115.f, 100.f));
-		break;
-	}
+		box->getComponent<CState>().state = "inactive";
 
-	box->addComponent<CState>("inactive"); 
+	} 
 	m_interactiveBoxes[boxIndex] = box;
 }
 
@@ -516,4 +569,144 @@ void Scene_Frogger::removeInteractiveBoxes(int boxIndex) {
 		m_interactiveBoxes[boxIndex]->getComponent<CTransform>().pos = sf::Vector2f(-1000, -1000);
 		m_interactiveBoxes[boxIndex] = nullptr;
 	}
+}
+
+void Scene_Frogger::initTexts() {
+	displayText.setFont(Assets::getInstance().getFont("main"));
+	displayText.setCharacterSize(24);
+	displayText.setFillColor(sf::Color::White);
+	displayText.setPosition(100, 100);
+
+	// Configura a caixa de fundo para o texto
+	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
+	textBackground.setPosition(90, 90); 
+	textBackground.setOutlineColor(sf::Color::White);
+	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
+
+	timedTexts.push_back({ "The rays of sun blinds me...", sf::seconds(5), sf::seconds(10) });
+	timedTexts.push_back({ "I reach for a pillow and smother my face with it.", sf::seconds(11), sf::seconds(15) });
+	timedTexts.push_back({ "Moving my arms invite pain.", sf::seconds(16), sf::seconds(21) });
+	timedTexts.push_back({ "I close my eyes...", sf::seconds(22), sf::seconds(27) });
+	timedTexts.push_back({ "A thick fog encompasses my brain.", sf::seconds(28), sf::seconds(33) });
+	timedTexts.push_back({ "Sweet.. sleep is coming back, but its hopeless.", sf::seconds(34), sf::seconds(38) });
+	timedTexts.push_back({ "Another thought invades my brain.", sf::seconds(39), sf::seconds(45) });
+	timedTexts.push_back({ "Sometimes just a familiar meow over my bed brings me back to reality...", sf::seconds(46), sf::seconds(56) });
+	timedTexts.push_back({ " ", sf::seconds(46), sf::seconds(60) });
+	
+
+}
+
+void Scene_Frogger::secondText() {
+	displayText.setFont(Assets::getInstance().getFont("main"));
+	displayText.setCharacterSize(24);
+	displayText.setFillColor(sf::Color::White);
+	displayText.setPosition(100, 100);
+
+	// Configura a caixa de fundo para o texto
+	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
+	textBackground.setPosition(90, 90);
+	textBackground.setOutlineColor(sf::Color::White);
+	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
+
+	if (checkBox1State()) {
+		timedTexts.push_back({ "Yes... thats what i was thinking about....", sf::seconds(50), sf::seconds(60) });
+		timedTexts.push_back({ "", sf::seconds(60), sf::seconds(65) });
+	}
+	else {
+		timedTexts.push_back({ "but sometimes... i cant even hear him...", sf::seconds(50), sf::seconds(60) });
+		timedTexts.push_back({ "", sf::seconds(60), sf::seconds(65) });
+	}
+
+	timedTexts.push_back({ "I think I'm going to lie down all day...", sf::seconds(65), sf::seconds(70) });
+	timedTexts.push_back({ "Why can’t I just go back to sleep? ", sf::seconds(71), sf::seconds(75) });
+	timedTexts.push_back({ "I Take a breath...", sf::seconds(76), sf::seconds(81) });
+	timedTexts.push_back({ "What to try now? If I've tried everything...", sf::seconds(82), sf::seconds(87) });
+	timedTexts.push_back({ "I can feel my cat moving around the room...", sf::seconds(88), sf::seconds(93) });
+	timedTexts.push_back({ "Can I make him happy?", sf::seconds(94), sf::seconds(98) });
+	timedTexts.push_back({ "I think he wants to show me something...", sf::seconds(99), sf::seconds(105) });
+	timedTexts.push_back({ "Haha, maybe he wants me to read something to him?", sf::seconds(106), sf::seconds(116) });
+	timedTexts.push_back({ " ", sf::seconds(116), sf::seconds(120) });
+}
+
+void Scene_Frogger::thirdText() {
+	
+	displayText.setFont(Assets::getInstance().getFont("main"));
+	displayText.setCharacterSize(24);
+	displayText.setFillColor(sf::Color::White);
+	displayText.setPosition(100, 100);
+
+	
+	// Configura a caixa de fundo para o texto
+	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
+	textBackground.setPosition(90, 90);
+	textBackground.setOutlineColor(sf::Color::White);
+	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
+
+	//checar se interactivebox0 está ativa
+	if (checkBox0State()) {
+		timedTexts.push_back({ "Okay... maybe you're right.", sf::seconds(120), sf::seconds(125) });
+		timedTexts.push_back({ "", sf::seconds(125), sf::seconds(130) });
+	}
+	else {
+		timedTexts.push_back({ "Maybe he's just exercising.", sf::seconds(120), sf::seconds(125) });
+		timedTexts.push_back({ "", sf::seconds(125), sf::seconds(130) });
+	}
+
+	//Texts texts texts	
+	timedTexts.push_back({ "Or maybe I should try to get up...", sf::seconds(120), sf::seconds(125) });
+	timedTexts.push_back({ "Some days are more difficult than others... ", sf::seconds(126), sf::seconds(131) });
+	timedTexts.push_back({ "I wish I had some friends...", sf::seconds(131), sf::seconds(141) });
+	timedTexts.push_back({ "haha i know i know!", sf::seconds(142), sf::seconds(147) });
+	timedTexts.push_back({ "You're trying your best", sf::seconds(148), sf::seconds(153) });
+	timedTexts.push_back({ "Well... I need to find my diary... ", sf::seconds(154), sf::seconds(158) });
+	timedTexts.push_back({ "Maybe I have some idea what to do...", sf::seconds(159), sf::seconds(165) });
+	timedTexts.push_back({ "Behind the couch, under the bed or on the desk?", sf::seconds(166), sf::seconds(176) });
+	timedTexts.push_back({ " ", sf::seconds(176), sf::seconds(180) });
+}
+
+void Scene_Frogger::finishText() {
+
+	displayText.setFont(Assets::getInstance().getFont("main"));
+	displayText.setCharacterSize(24);
+	displayText.setFillColor(sf::Color::White);
+	displayText.setPosition(100, 100);
+
+
+	// Configura a caixa de fundo para o texto
+	textBackground.setFillColor(sf::Color(0, 0, 0, 200));
+	textBackground.setPosition(90, 90);
+	textBackground.setOutlineColor(sf::Color::White);
+	textBackground.setSize(sf::Vector2f(displayText.getLocalBounds().width + 20, displayText.getLocalBounds().height + 20));
+
+	//checar se interactivebox0 está ativa
+	if (checkBox2State()) {
+		timedTexts.push_back({ "You have found it!", sf::seconds(180), sf::seconds(185) });
+		timedTexts.push_back({ "", sf::seconds(185), sf::seconds(190) });
+	}
+	else {
+		timedTexts.push_back({ "Better forget about it...", sf::seconds(180), sf::seconds(185) });
+		timedTexts.push_back({ "", sf::seconds(185), sf::seconds(190) });
+	}
+
+}
+
+bool Scene_Frogger::checkBox0State() {
+	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[0] != nullptr) {
+		return m_interactiveBoxes[0]->getComponent<CState>().state == "active";
+	}
+	return false;
+}
+
+bool Scene_Frogger::checkBox1State() {
+	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[1] != nullptr) {
+		return m_interactiveBoxes[1]->getComponent<CState>().state == "active";
+	}
+	return false;
+}
+
+bool Scene_Frogger::checkBox2State() {
+	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[2] != nullptr) {
+		return m_interactiveBoxes[2]->getComponent<CState>().state == "active";
+	}
+	return false;
 }

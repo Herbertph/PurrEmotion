@@ -11,6 +11,8 @@ private:
 	int							m_menuIndex{0};
 	std::string					m_title;
 	sf::Sprite					m_background;
+	sf::Texture m_backgroundTexture;
+
 
 	void init();
 	void onEnd() override;

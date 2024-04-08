@@ -7,7 +7,6 @@ Font    main            ../assets/fonts/Sansation.ttf
 Font    Arcade          ../assets/fonts/arcadeclassic.regular.ttf
 
 Music gameTheme         ../assets/Music/music.ogg
-Music missionTheme      ../assets/Music/music.ogg
 
 # Textures
 Texture Background      ../assets/Textures/background.png
@@ -20,11 +19,9 @@ Sprite Title            Title 0 0 480 600
 
 #
 # SOUNDS
-Sound death             ../assets/Sound/froggerDie.wav
-Sound hop               ../assets/Sound/froggerMove.wav
+Sound meow		../assets/Sound/meow.wav
 
 JSON                    ../assets/Textures/catAtlas.json
-
 
 #
 #  Animation    Name            Texture     Speed   Repeats

@@ -10,9 +10,29 @@
 #include "Scene.h"
 #include "GameEngine.h"
 #include "Entity.h"
+#include <string>
+#include <vector>
+
+struct TimedText {
+	std::string text;
+	sf::Time startTime;
+	sf::Time endTime;
+};
 
 class Scene_Frogger : public Scene {
 private:
+	std::vector<TimedText> timedTexts; // Lista de textos com tempos
+	sf::Text displayText; // O texto SFML que será usado para renderização
+	sf::Font font; // A fonte do texto
+	size_t currentTextIndex = 0; // Índice do texto atual
+	size_t currentCharIndex = 0; // Índice do caractere atual no efeito de máquina de escrever
+	sf::Time textEffectTime = sf::seconds(0.05); // Intervalo de tempo para o efeito de máquina de escrever
+	sf::Time sinceLastUpdate = sf::Time::Zero; // Controle de tempo para o efeito de máquina de escrever
+	size_t charIndex = 0; // Índice do próximo caractere a ser exibido
+	sf::Time lastCharUpdateTime; // Quando o último caractere foi adicionado ao texto visível
+	sf::Time textStartTime;
+
+
 	sf::Vector2f velocity;
 	bool onSafeEntity;
 
@@ -24,6 +44,7 @@ private:
 	sf::FloatRect m_worldBounds;
 	sf::Time m_elapsedTime = sf::Time::Zero;
 	sf::Font m_font;
+	sf::RectangleShape textBackground;
 
 
 
@@ -56,7 +77,17 @@ private:
 	bool isOnInvisibleBox() const;
 	void spawnInteractiveBoxes(int boxIndex);
 	void removeInteractiveBoxes(int boxIndex);
-	
+	void initTexts();
+	void secondText();
+	void thirdText();
+	void finishText();
+	bool conditionalTextAdded = false;
+	bool conditionalTextAddedSecond = false;
+	bool conditionalTextAddedThird = false;
+	bool conditionalTextAddedFinish = false;
+	bool checkBox0State();
+	bool checkBox1State();
+	bool checkBox2State();
 	
 	void spawnPlayer(sf::Vector2f pos);
 
