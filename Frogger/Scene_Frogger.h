@@ -21,15 +21,15 @@ struct TimedText {
 
 class Scene_Frogger : public Scene {
 private:
-	std::vector<TimedText> timedTexts; // Lista de textos com tempos
-	sf::Text displayText; // O texto SFML que será usado para renderização
-	sf::Font font; // A fonte do texto
-	size_t currentTextIndex = 0; // Índice do texto atual
-	size_t currentCharIndex = 0; // Índice do caractere atual no efeito de máquina de escrever
-	sf::Time textEffectTime = sf::seconds(0.05); // Intervalo de tempo para o efeito de máquina de escrever
-	sf::Time sinceLastUpdate = sf::Time::Zero; // Controle de tempo para o efeito de máquina de escrever
-	size_t charIndex = 0; // Índice do próximo caractere a ser exibido
-	sf::Time lastCharUpdateTime; // Quando o último caractere foi adicionado ao texto visível
+	std::vector<TimedText> timedTexts;
+	sf::Text displayText;
+	sf::Font font; 
+	size_t currentTextIndex = 0; 
+	size_t currentCharIndex = 0;
+	sf::Time textEffectTime = sf::seconds(0.05); 
+	sf::Time sinceLastUpdate = sf::Time::Zero;
+	size_t charIndex = 0;
+	sf::Time lastCharUpdateTime; 
 	sf::Time textStartTime;
 
 

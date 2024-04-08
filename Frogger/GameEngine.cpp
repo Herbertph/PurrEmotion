@@ -89,13 +89,12 @@ void GameEngine::changeScene(const std::string& sceneName, std::shared_ptr<Scene
 
 
 	if (endCurrentScene) {
-		// remove scene from map
+		
 		m_sceneMap.erase(m_currentScene);
 	}
 
 	if (!m_sceneMap.contains(sceneName)) {
-		// if scene not in map alrady put new one in
-		// otherwise use existing scene arleady in map
+		
 		m_sceneMap[sceneName] = scene;
 	}
 
@@ -111,27 +110,24 @@ void GameEngine::quit()
 
 void GameEngine::run()
 {
-	const sf::Time SPF = sf::seconds(1.0f / 60.f);  // seconds per frame for 60 fps 
+	const sf::Time SPF = sf::seconds(1.0f / 60.f);  
 
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
 
 	while (isRunning())
 	{
-		sUserInput();								// get user input
+		sUserInput();								
 
 		timeSinceLastUpdate += clock.restart();
 		while (timeSinceLastUpdate > SPF)
 		{
-			currentScene()->update(SPF);			// update world
+			currentScene()->update(SPF);			
 			timeSinceLastUpdate -= SPF;
 		}
 
-		currentScene()->sRender();					// render world
+		currentScene()->sRender();					
 
-		// draw stats
-
-		// display
 		window().display();
 	}
 }

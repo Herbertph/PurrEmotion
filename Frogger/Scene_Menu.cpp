@@ -87,15 +87,6 @@ void Scene_Menu::sRender()
 	footer.setFillColor(normalColor);
 	footer.setPosition(32, 700);
 
-	/*for (size_t i{0}; i < m_menuStrings.size(); ++i)
-	{
-		m_menuText.setFillColor((i == m_menuIndex ? selectedColor : normalColor));
-		m_menuText.setStyle(sf::Text::Bold);
-		m_menuText.setPosition(650, 350 + (i + 1) * 70);
-		m_menuText.setString(m_menuStrings.at(i));
-		m_game->window().draw(m_menuText);
-	}*/
-
 	m_game->window().draw(footer);
 }
 

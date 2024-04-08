@@ -221,7 +221,7 @@ void Scene_Frogger::update(sf::Time dt) {
 		conditionalTextAddedFinish = true;
 	}
 
-	if (m_elapsedTime >= sf::seconds(180)) {
+	if (m_elapsedTime >= sf::seconds(190)) {
 		endGame();
 	}
 
@@ -627,8 +627,8 @@ void Scene_Frogger::thirdText() {
 	}
 
 	timedTexts.push_back({ "Or maybe I should try to get up...", sf::seconds(120), sf::seconds(125) });
-	timedTexts.push_back({ "Some days are more difficult than others... ", sf::seconds(126), sf::seconds(131) });
-	timedTexts.push_back({ "I wish I had some friends...", sf::seconds(131), sf::seconds(141) });
+	timedTexts.push_back({ "Some days are more difficult than others... ", sf::seconds(126), sf::seconds(136) });
+	timedTexts.push_back({ "I wish I had some friends...", sf::seconds(137), sf::seconds(141) });
 	timedTexts.push_back({ "haha i know i know!", sf::seconds(142), sf::seconds(147) });
 	timedTexts.push_back({ "You're trying your best", sf::seconds(148), sf::seconds(153) });
 	timedTexts.push_back({ "Well... I need to find my diary... ", sf::seconds(154), sf::seconds(158) });
@@ -652,11 +652,13 @@ void Scene_Frogger::finishText() {
 
 	if (checkBox2State()) {
 		timedTexts.push_back({ "You have found it!", sf::seconds(180), sf::seconds(185) });
-		timedTexts.push_back({ "", sf::seconds(185), sf::seconds(190) });
+		timedTexts.push_back({ "I Really need to do something with my life. And i will!", sf::seconds(186), sf::seconds(190) });
+		timedTexts.push_back({ "", sf::seconds(195), sf::seconds(200) });
 	}
 	else {
 		timedTexts.push_back({ "Better forget about it...", sf::seconds(180), sf::seconds(185) });
-		timedTexts.push_back({ "", sf::seconds(185), sf::seconds(190) });
+		timedTexts.push_back({ "I Really need to do something with my life. Maybe...", sf::seconds(186), sf::seconds(190) });
+		timedTexts.push_back({ "", sf::seconds(195), sf::seconds(200) });
 	}
 
 }
