@@ -19,7 +19,7 @@ struct TimedText {
 	sf::Time endTime;
 };
 
-class Scene_Frogger : public Scene {
+class Scene_Purr : public Scene {
 private:
 	std::vector<TimedText> timedTexts;
 	sf::Text displayText;
@@ -70,7 +70,7 @@ private:
 	sf::RectangleShape fadeOutRect;
 	sf::Text finalText;
 	bool isFadingOut = false;
-	float fadeOutSpeed = 5;
+	float fadeOutSpeed = 4;
 	int activatedBoxesCount = 0;
 
 
@@ -114,7 +114,7 @@ private:
 	sf::FloatRect getViewBounds();
 
 public:
-	Scene_Frogger(GameEngine* gameEngine, const std::string& levelPath);
+	Scene_Purr(GameEngine* gameEngine, const std::string& levelPath);
 	void update(sf::Time dt) override;
 	void sDoAction(const Command& command) override;
 	void sRender() override;

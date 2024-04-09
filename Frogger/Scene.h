@@ -9,7 +9,7 @@
 
 using CommandMap = std::map<int, std::string>;
 
-class Scene_Frogger;
+class Scene_Purr;
 
 class Scene
 {

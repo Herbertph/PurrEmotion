@@ -29,7 +29,7 @@
     <ClCompile Include="MusicPlayer.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="Scene_Frogger.cpp" />
+    <ClCompile Include="Scene_Purr.cpp" />
     <ClCompile Include="Scene_Menu.cpp" />
     <ClCompile Include="SoundPlayer.cpp" />
     <ClCompile Include="Utilities.cpp" />
@@ -46,7 +46,7 @@
     <ClInclude Include="MusicPlayer.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Scene.h" />
-    <ClInclude Include="Scene_Frogger.h" />
+    <ClInclude Include="Scene_Purr.h" />
     <ClInclude Include="Scene_Menu.h" />
     <ClInclude Include="SoundPlayer.h" />
     <ClInclude Include="Utilities.h" />
@@ -57,6 +57,7 @@
     <ProjectGuid>{54c84fc2-78ef-457b-bb9f-efa2d941bfcc}</ProjectGuid>
     <RootNamespace>Frogger</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>PurrEmotion</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

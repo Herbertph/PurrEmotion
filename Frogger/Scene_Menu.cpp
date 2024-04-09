@@ -1,5 +1,5 @@
 #include "Scene_Menu.h"
-#include "Scene_Frogger.h"
+#include "Scene_Purr.h"
 #include <memory>
 #include "Assets.h"
 
@@ -106,7 +106,7 @@ void Scene_Menu::sDoAction(const Command& action)
 		else if (action.name() == "PLAY")
 		{
 			Assets::getInstance().reset();
-			m_game->changeScene("PLAY", std::make_shared<Scene_Frogger>(m_game, m_levelPaths[m_menuIndex]));
+			m_game->changeScene("PLAY", std::make_shared<Scene_Purr>(m_game, m_levelPaths[m_menuIndex]));
 		}
 		else if (action.name() == "QUIT")
 		{

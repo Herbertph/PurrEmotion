@@ -5,7 +5,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "Scene_Frogger.h"
+#include "Scene_Purr.h"
 #include "Components.h"
 #include "Physics.h"
 #include "Utilities.h"
@@ -21,7 +21,7 @@ namespace {
 const float GRAVITY_SPEED = 150.f;
 
 #pragma region Constructor and Initialization
-Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPath)
+Scene_Purr::Scene_Purr(GameEngine* gameEngine, const std::string& levelPath)
 	: Scene(gameEngine)
 	, m_worldView(gameEngine->window().getDefaultView()) {
 
@@ -54,7 +54,7 @@ Scene_Frogger::Scene_Frogger(GameEngine* gameEngine, const std::string& levelPat
 #pragma endregion
 
 #pragma region Load and Level Config
-void Scene_Frogger::loadLevel(const std::string& path) {
+void Scene_Purr::loadLevel(const std::string& path) {
 	std::ifstream config(path);
 	if (config.fail()) {
 		std::cerr << "Open file " << path << " failed\n";
@@ -85,7 +85,7 @@ void Scene_Frogger::loadLevel(const std::string& path) {
 	config.close();
 }
 
-void Scene_Frogger::registerActions() {
+void Scene_Purr::registerActions() {
 	registerAction(sf::Keyboard::P, "PAUSE");
 	registerAction(sf::Keyboard::Escape, "BACK");
 	registerAction(sf::Keyboard::Q, "QUIT");
@@ -102,7 +102,7 @@ void Scene_Frogger::registerActions() {
 	registerAction(sf::Keyboard::Space, "ACTIVATE");
 }
 
-void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
+void Scene_Purr::spawnPlayer(sf::Vector2f pos) {
 	
 
 	m_player = m_entityManager.addEntity("player");
@@ -113,7 +113,7 @@ void Scene_Frogger::spawnPlayer(sf::Vector2f pos) {
 	m_player->addComponent<CState>("grounded");
 }
 
-void Scene_Frogger::spawnInvisibleCollisionBox() {
+void Scene_Purr::spawnInvisibleCollisionBox() {
 
 	sf::Vector2f viewSize = m_worldView.getSize();
 
@@ -144,7 +144,7 @@ void Scene_Frogger::spawnInvisibleCollisionBox() {
 
 }
 
-void Scene_Frogger::initTexts() {
+void Scene_Purr::initTexts() {
 	displayText.setFont(Assets::getInstance().getFont("main"));
 	displayText.setCharacterSize(24);
 	displayText.setFillColor(sf::Color::White);
@@ -171,7 +171,7 @@ void Scene_Frogger::initTexts() {
 #pragma endregion
 
 #pragma region Updates
-void Scene_Frogger::update(sf::Time dt) {
+void Scene_Purr::update(sf::Time dt) {
 	m_elapsedTime += dt;
 
 	if (currentTextIndex < timedTexts.size() && m_elapsedTime >= timedTexts[currentTextIndex].endTime) {
@@ -255,13 +255,11 @@ void Scene_Frogger::update(sf::Time dt) {
 	}
 
 	
-
 	sUpdate(dt);
-	if (m_player->getComponent<CState>().state == "dead" && m_player->getComponent<CAnimation>().animation.hasEnded()) {
-	}
+	
 }
 
-void Scene_Frogger::sUpdate(sf::Time dt) {
+void Scene_Purr::sUpdate(sf::Time dt) {
 	SoundPlayer::getInstance().removeStoppedSounds();
 	m_entityManager.update();
 
@@ -280,7 +278,7 @@ void Scene_Frogger::sUpdate(sf::Time dt) {
 #pragma endregion
 
 #pragma region Events and Actions
-void Scene_Frogger::sDoAction(const Command& action) {
+void Scene_Purr::sDoAction(const Command& action) {
 	if (action.type() == "START") {
 		if (action.name() == "PAUSE") { setPaused(!m_isPaused); }
 		else if (action.name() == "QUIT") { m_game->quitLevel(); }
@@ -321,7 +319,7 @@ void Scene_Frogger::sDoAction(const Command& action) {
 
 #pragma region Animation and Movement
 
-void Scene_Frogger::sMovement(sf::Time dt) {
+void Scene_Purr::sMovement(sf::Time dt) {
 	playerMovement();
 
 	for (auto e : m_entityManager.getEntities()) {
@@ -336,7 +334,7 @@ void Scene_Frogger::sMovement(sf::Time dt) {
 	}
 }
 
-void Scene_Frogger::sAnimation(sf::Time dt) {
+void Scene_Purr::sAnimation(sf::Time dt) {
 	auto list = m_entityManager.getEntities();
 	for (auto e : m_entityManager.getEntities()) {
 		if (e->hasComponent<CAnimation>()) {
@@ -346,7 +344,7 @@ void Scene_Frogger::sAnimation(sf::Time dt) {
 	}
 }
 
-void Scene_Frogger::applyGravity(sf::Time dt) {
+void Scene_Purr::applyGravity(sf::Time dt) {
 	auto& state = m_player->getComponent<CState>().state;
 	if (state == "jumping") {
 		
@@ -363,7 +361,7 @@ void Scene_Frogger::applyGravity(sf::Time dt) {
 	}
 }
 
-void Scene_Frogger::adjustPlayerPosition() {
+void Scene_Purr::adjustPlayerPosition() {
 	auto center = m_worldView.getCenter();
 	sf::Vector2f viewHalfSize = m_worldView.getSize() / 2.f;
 
@@ -381,7 +379,7 @@ void Scene_Frogger::adjustPlayerPosition() {
 	player_pos.y = std::min(player_pos.y, bot - halfSize.y);
 }
 
-void Scene_Frogger::playerMovement() {
+void Scene_Purr::playerMovement() {
 	auto& dir = m_player->getComponent<CInput>().dir;
 	auto& pos = m_player->getComponent<CTransform>().pos;
 	auto& vel = m_player->getComponent<CTransform>().vel;
@@ -417,7 +415,7 @@ void Scene_Frogger::playerMovement() {
 
 #pragma region Collisions
 
-void Scene_Frogger::sCollisions(sf::Time dt) {
+void Scene_Purr::sCollisions(sf::Time dt) {
 	auto& entities = m_entityManager.getEntities();
 	for (auto& entity : entities) {
 		if (entity->getTag() == "player") {
@@ -441,7 +439,7 @@ void Scene_Frogger::sCollisions(sf::Time dt) {
 	}
 }
 
-bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
+bool Scene_Purr::checkCollision(Entity& entity1, Entity& entity2) {
 	if (entity1.hasComponent<CBoundingBox>() && entity2.hasComponent<CBoundingBox>()) {
 		auto& box1 = entity1.getComponent<CBoundingBox>();
 		auto& box2 = entity2.getComponent<CBoundingBox>();
@@ -462,7 +460,7 @@ bool Scene_Frogger::checkCollision(Entity& entity1, Entity& entity2) {
 	return false;
 }
 
-bool Scene_Frogger::isOnGround() const {
+bool Scene_Purr::isOnGround() const {
 	if (!m_player) return false; 
 
 	auto& transform = m_player->getComponent<CTransform>();
@@ -478,7 +476,7 @@ bool Scene_Frogger::isOnGround() const {
 	return (transform.pos.y + boundingBox.halfSize.y) >= groundHeight;
 }
 
-void Scene_Frogger::checkGroundCollision() {
+void Scene_Purr::checkGroundCollision() {
 	if (!m_player) return; 
 
 	auto& transform = m_player->getComponent<CTransform>();
@@ -495,7 +493,7 @@ void Scene_Frogger::checkGroundCollision() {
 
 #pragma region Render
 
-void Scene_Frogger::sRender() {
+void Scene_Purr::sRender() {
 	m_game->window().setView(m_worldView);
 	drawBackground();
 	drawEntities();
@@ -533,7 +531,7 @@ void Scene_Frogger::sRender() {
 	}
 }
 
-void Scene_Frogger::drawBackground() {
+void Scene_Purr::drawBackground() {
 	for (auto e : m_entityManager.getEntities("bkg")) {
 		if (e->getComponent<CSprite>().has) {
 			m_game->window().draw(e->getComponent<CSprite>().sprite);
@@ -541,7 +539,7 @@ void Scene_Frogger::drawBackground() {
 	}
 }
 
-void Scene_Frogger::drawEntities() {
+void Scene_Purr::drawEntities() {
 	for (auto& e : m_entityManager.getEntities()) {
 		if (!e->hasComponent<CAnimation>()) continue;
 
@@ -557,7 +555,7 @@ void Scene_Frogger::drawEntities() {
 	}
 }
 
-void Scene_Frogger::drawBoundingBox(std::shared_ptr<Entity> entity) {
+void Scene_Purr::drawBoundingBox(std::shared_ptr<Entity> entity) {
 	auto box = entity->getComponent<CBoundingBox>();
 	sf::RectangleShape rect(sf::Vector2f{ box.size.x, box.size.y });
 	centerOrigin(rect);
@@ -572,7 +570,7 @@ void Scene_Frogger::drawBoundingBox(std::shared_ptr<Entity> entity) {
 
 #pragma region Texts
 
-void Scene_Frogger::secondText() {
+void Scene_Purr::secondText() {
 	displayText.setFont(Assets::getInstance().getFont("main"));
 	displayText.setCharacterSize(24);
 	displayText.setFillColor(sf::Color::White);
@@ -604,7 +602,7 @@ void Scene_Frogger::secondText() {
 	timedTexts.push_back({ " ", sf::seconds(116), sf::seconds(120) });
 }
 
-void Scene_Frogger::thirdText() {
+void Scene_Purr::thirdText() {
 
 	displayText.setFont(Assets::getInstance().getFont("main"));
 	displayText.setCharacterSize(24);
@@ -637,7 +635,7 @@ void Scene_Frogger::thirdText() {
 	timedTexts.push_back({ " ", sf::seconds(176), sf::seconds(180) });
 }
 
-void Scene_Frogger::finishText() {
+void Scene_Purr::finishText() {
 
 	displayText.setFont(Assets::getInstance().getFont("main"));
 	displayText.setCharacterSize(24);
@@ -667,7 +665,7 @@ void Scene_Frogger::finishText() {
 
 #pragma region EndGame
 
-void Scene_Frogger::endGame() {
+void Scene_Purr::endGame() {
 
 	std::string resultText;
 	if (activatedBoxes == 3) {
@@ -692,7 +690,7 @@ void Scene_Frogger::endGame() {
 	isFadingOut = true;
 }
 
-void Scene_Frogger::onEnd() {
+void Scene_Purr::onEnd() {
 	m_game->changeScene("MENU", nullptr, false);
 }
 
@@ -700,15 +698,15 @@ void Scene_Frogger::onEnd() {
 
 #pragma region Support And Utilities
 
-float Scene_Frogger::getGroundLevelAt(float x) {
+float Scene_Purr::getGroundLevelAt(float x) {
 	return 500.0f;
 }
 
-sf::FloatRect Scene_Frogger::getViewBounds() {
+sf::FloatRect Scene_Purr::getViewBounds() {
 	return sf::FloatRect();
 }
 
-void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
+void Scene_Purr::spawnInteractiveBoxes(int boxIndex) {
 	if (boxIndex >= m_interactiveBoxes.size()) {
 		m_interactiveBoxes.resize(boxIndex + 1, nullptr);
 	}
@@ -740,28 +738,28 @@ void Scene_Frogger::spawnInteractiveBoxes(int boxIndex) {
 	m_interactiveBoxes[boxIndex] = box;
 }
 
-void Scene_Frogger::removeInteractiveBoxes(int boxIndex) {
+void Scene_Purr::removeInteractiveBoxes(int boxIndex) {
 	if (boxIndex < m_interactiveBoxes.size() && m_interactiveBoxes[boxIndex] != nullptr) {
 		m_interactiveBoxes[boxIndex]->getComponent<CTransform>().pos = sf::Vector2f(-1000, -1000);
 		m_interactiveBoxes[boxIndex] = nullptr;
 	}
 }
 
-bool Scene_Frogger::checkBox0State() {
+bool Scene_Purr::checkBox0State() {
 	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[0] != nullptr) {
 		return m_interactiveBoxes[0]->getComponent<CState>().state == "active";
 	}
 	return false;
 }
 
-bool Scene_Frogger::checkBox1State() {
+bool Scene_Purr::checkBox1State() {
 	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[1] != nullptr) {
 		return m_interactiveBoxes[1]->getComponent<CState>().state == "active";
 	}
 	return false;
 }
 
-bool Scene_Frogger::checkBox2State() {
+bool Scene_Purr::checkBox2State() {
 	if (!m_interactiveBoxes.empty() && m_interactiveBoxes[2] != nullptr) {
 		return m_interactiveBoxes[2]->getComponent<CState>().state == "active";
 	}
