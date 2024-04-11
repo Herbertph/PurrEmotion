@@ -55,7 +55,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{54c84fc2-78ef-457b-bb9f-efa2d941bfcc}</ProjectGuid>
-    <RootNamespace>Frogger</RootNamespace>
+    <RootNamespace>PurrEmotion</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectName>PurrEmotion</ProjectName>
   </PropertyGroup>
